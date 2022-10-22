@@ -15,10 +15,10 @@ import axios from 'axios';
 import { NoWalletDetected } from './NoWalletDetected';
 import { ConnectWallet } from './ConnectWallet';
 import { Loading } from './Loading';
-import { Transfer } from './Transfer';
-import { TransactionErrorMessage } from './TransactionErrorMessage';
-import { WaitingForTransactionMessage } from './WaitingForTransactionMessage';
-import { NoTokensMessage } from './NoTokensMessage';
+// import { Transfer } from './Transfer';
+// import { TransactionErrorMessage } from './TransactionErrorMessage';
+// import { WaitingForTransactionMessage } from './WaitingForTransactionMessage';
+// import { NoTokensMessage } from './NoTokensMessage';
 
 // This is the Hardhat Network id that we set in our hardhat.config.js.
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
@@ -30,18 +30,20 @@ import { NoTokensMessage } from './NoTokensMessage';
 const ERROR_CODE_TX_REJECTED_BY_USER = 4001;
 
 interface DappState {
-  // The info of the token (i.e. It's Name and symbol)
-  tokenData: {
-    name: string;
-    symbol: string;
-  };
   // The user's address and balance
   selectedAddress: undefined;
-  balance: BigNumber;
+
+  balanceAccessToken: BigNumber;
+  balanceUZHETH: BigNumber;
+
   // The ID about transactions being sent, and any possible error with them
   txBeingSent: undefined;
   transactionError: undefined;
   networkError: undefined | string;
+
+  isRegistered: boolean;
+
+  nftFeatures: string;
 }
 
 // This component is in charge of doing these things:
@@ -55,7 +57,7 @@ interface DappState {
 // you how to keep your Dapp and contract's state in sync,  and how to send a
 // transaction.
 export class Dapp extends React.Component<{}, DappState> {
-  initialState: any;
+  initialState: DappState;
   _provider: any;
   _token: any;
   _pollDataInterval: any;
@@ -66,18 +68,25 @@ export class Dapp extends React.Component<{}, DappState> {
     // We store multiple things in Dapp's state.
     // You don't need to follow this pattern, but it's an useful example.
     this.initialState = {
-      // The info of the token (i.e. It's Name and symbol)
-      tokenData: undefined,
       // The user's address and balance
       selectedAddress: undefined,
-      balance: undefined,
+
+      balanceAccessToken: BigNumber.from(0),
+      balanceUZHETH: BigNumber.from(0),
+
       // The ID about transactions being sent, and any possible error with them
       txBeingSent: undefined,
       transactionError: undefined,
       networkError: undefined,
-    };
 
+      isRegistered: false,
+
+      nftFeatures: ''
+    };
     this.state = this.initialState;
+
+    this._handleChange = this._handleChange.bind(this);
+    this._handleSubmit = this._handleSubmit.bind(this);
   }
 
   render() {
@@ -104,83 +113,52 @@ export class Dapp extends React.Component<{}, DappState> {
       );
     }
 
-    // If the token data or the user's balance hasn't loaded yet, we show
-    // a loading component.
-    if (!this.state.tokenData || !this.state.balance) {
-      return <Loading />;
+    if (!this.state.balanceAccessToken || !this.state.balanceUZHETH) {
+      return <Loading />
     }
 
-    // If everything is loaded, we render the application.
     return (
-      <div className="container p-4">
-        <div className="row">
-          <div className="col-12">
-            <h1>
-              {this.state.tokenData.name} ({this.state.tokenData.symbol})
-            </h1>
-            <p>
-              Welcome <b>{this.state.selectedAddress}</b>, you have{' '}
-              <b>
-                {this.state.balance.toString()} {this.state.tokenData.symbol}
-              </b>
-              .
-            </p>
+        <div className="container p-4">
+
+          <div className="row">
+            <div className="col-12">
+              <p> Welcome {this.state.selectedAddress}, </p>
+              <p> you currently have {this.state.balanceUZHETH.toString()} UZHETH. </p>
+              <p> you currently have {this.state.balanceAccessToken.toString()} access tokens. </p>
+            </div>
           </div>
-        </div>
 
-        <hr />
-
-        <div className="row">
-          <div className="col-12">
-            {/* 
-              Sending a transaction isn't an immediate action. You have to wait
-              for it to be mined.
-              If we are waiting for one, we show a message here.
-            */}
-            {this.state.txBeingSent && (
-              <WaitingForTransactionMessage txHash={this.state.txBeingSent} />
-            )}
-
-            {/* 
-              Sending a transaction can fail in multiple ways. 
-              If that happened, we show a message here.
-            */}
-            {this.state.transactionError && (
-              <TransactionErrorMessage
-                message={this._getRpcErrorMessage(this.state.transactionError)}
-                dismiss={() => this._dismissTransactionError()}
-              />
-            )}
+          <div className="row mt-3">
+            <div className="col-12">
+              <p>
+                {this.state.isRegistered ? 'You have already been registered' : 'Click the button below to register'}
+              </p>
+              <button type="button" className="btn btn-success" onClick={() => this._register()} disabled={this.state.isRegistered}>
+                Register
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="row">
-          <div className="col-12">
-            {/*
-              If the user has no tokens, we don't show the Transfer form
-            */}
-            {this.state.balance.eq(0) && (
-              <NoTokensMessage selectedAddress={this.state.selectedAddress} />
-            )}
-
-            {/*
-              This component displays a form that the user can use to send a 
-              transaction and transfer some tokens.
-              The component doesn't have logic, it just calls the transferTokens
-              callback.
-            */}
-            {this.state.balance.gt(0) && (
-              <Transfer
-                transferTokens={(to: any, amount: any) =>
-                  this._transferTokens(to, amount)
-                }
-                tokenSymbol={this.state.tokenData.symbol}
-              />
-            )}
-          </div>
+          {
+            (this.state.balanceAccessToken.gt(0)) ? (
+              <div className="row mt-5">
+                <div className="col-12">
+                  <form onSubmit={this._handleSubmit}>
+                    <label>
+                      NFT configuration:
+                    </label>
+                    <input type='textarea' className="form-control" placeholder="Here we type in some features" onChange={this._handleChange}/>
+                    <br/>
+                    <button type="submit" className="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            ) : (
+              <></>
+            )
+          }
         </div>
-      </div>
-    );
+    )
   }
 
   componentWillUnmount() {
@@ -243,8 +221,10 @@ export class Dapp extends React.Component<{}, DappState> {
     // Fetching the token data and the user's balance are specific to this
     // sample project, but you can reuse the same initialization pattern.
     this._initializeEthers();
-    this._getTokenData();
     this._startPollingData();
+
+    // Custom functions for the PoC
+    this._getRegisteredState();
   }
 
   async _initializeEthers() {
@@ -279,22 +259,12 @@ export class Dapp extends React.Component<{}, DappState> {
     this._pollDataInterval = undefined;
   }
 
-  // The next two methods just read from the contract and store the results
-  // in the component state.
-  async _getTokenData() {
-    // const name = await this._token.name();
-    // const symbol = await this._token.symbol();
-    const name = 'Goerli USDC Coin';
-    const symbol = 'USD';
-
-    this.setState({ tokenData: { name, symbol } });
-  }
-
   async _updateBalance() {
     // const balance = await this._token.balanceOf(this.state.selectedAddress);
     const res = await axios.get(`http://localhost:3001/web3/balance/${process.env.REACT_APP_ACCESS_TOKEN_ADDRESS}`);
     const balance = res.data;
-    this.setState({ balance: BigNumber.from(balance) });
+    this.setState({ balanceAccessToken: BigNumber.from(balance).add(2) });
+    this.setState({ balanceUZHETH: BigNumber.from(balance).add(1) });
   }
 
   // This method sends an ethereum transaction to transfer tokens.
@@ -427,4 +397,26 @@ export class Dapp extends React.Component<{}, DappState> {
 
     return false;
   }
+
+  // Custom functions for the PoC
+  async _register() {
+    const data = { address: this.state.selectedAddress }
+    const response = await axios.post(`http://localhost:3001/web3/registry/register`, data);
+    console.log(response);
+  }
+
+  async _getRegisteredState() {
+    const response = await axios.get(`http://localhost:3001/web3/registry/${this.state.selectedAddress}`);
+    this.setState({ isRegistered: response.data });
+  }
+
+  async _handleSubmit(event: any) {
+    event.preventDefault();
+    console.log(this.state.nftFeatures);
+  }
+
+  async _handleChange(event: any) {
+    this.setState({ nftFeatures: event.target!.value });
+  }
+
 }
