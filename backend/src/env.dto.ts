@@ -8,13 +8,13 @@ export class EnvDto {
   @IsNotEmpty()
   NETWORK_URL: string;
 
-  // @ValidateIf((object) => !object.ADMIN_PRIVATEKEY || object.ADMIN_MNEMONIC)
-  // @IsNotEmpty()
-  // @IsString()
-  // ADMIN_MNEMONIC: string;
+  @ValidateIf((object) => !object.ADMIN_PRIVATEKEY || object.ADMIN_MNEMONIC)
+  @IsNotEmpty()
+  @IsString()
+  ADMIN_MNEMONIC: string;
 
-  // @ValidateIf((object) => !object.ADMIN_MNEMONIC || object.ADMIN_PRIVATEKEY)
-  // @IsNotEmpty()
-  // @IsString()
-  // ADMIN_PRIVATEKEY: string;
+  @ValidateIf((object) => !object.ADMIN_MNEMONIC || object.ADMIN_PRIVATEKEY)
+  @IsNotEmpty()
+  @IsString()
+  ADMIN_PRIVATEKEY: string;
 }
