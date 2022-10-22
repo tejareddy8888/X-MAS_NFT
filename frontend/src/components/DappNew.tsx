@@ -1,7 +1,7 @@
 import React from 'react';
 
 // We'll use ethers to interact with the Ethereum network and our contract
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import axios from 'axios';
 
 // We import the contract's artifacts and address here, as we are going to be
@@ -35,8 +35,8 @@ interface DappState {
   // The user's address and balance
   selectedAddress: undefined;
 
-  balanceAccessToken: BigNumber;
-  balanceUZHETH: BigNumber;
+  balanceAccessToken: undefined | number;
+  balanceUZHETH: undefined | number;
 
   // The ID about transactions being sent, and any possible error with them
   txBeingSent: undefined;
@@ -73,8 +73,8 @@ export class Dapp extends React.Component<{}, DappState> {
       // The user's address and balance
       selectedAddress: undefined,
 
-      balanceAccessToken: BigNumber.from(0),
-      balanceUZHETH: BigNumber.from(0),
+      balanceAccessToken: undefined,
+      balanceUZHETH: undefined,
 
       // The ID about transactions being sent, and any possible error with them
       txBeingSent: undefined,
@@ -115,7 +115,7 @@ export class Dapp extends React.Component<{}, DappState> {
       );
     }
 
-    if (!this.state.balanceAccessToken || !this.state.balanceUZHETH) {
+    if (this.state.balanceAccessToken === undefined || this.state.balanceUZHETH === undefined) {
       return <Loading />
     }
 
@@ -142,7 +142,7 @@ export class Dapp extends React.Component<{}, DappState> {
           </div>
 
           {
-            (this.state.balanceAccessToken.gt(0)) ? (
+            (this.state.balanceAccessToken > 0) ? (
               <div className="row mt-5">
                 <div className="col-12">
                   <form onSubmit={this._handleSubmit}>
@@ -264,9 +264,11 @@ export class Dapp extends React.Component<{}, DappState> {
   async _updateBalance() {
     // const balance = await this._token.balanceOf(this.state.selectedAddress);
     const res = await axios.get(`http://localhost:3001/web3/balance/${this.state.selectedAddress}`);
-    const balance = res.data;
-    this.setState({ balanceAccessToken: BigNumber.from(balance).add(1) });
-    this.setState({ balanceUZHETH: BigNumber.from(balance).add(2) });
+    this.setState({ balanceAccessToken: res.data });
+
+    const balanceWei = await this._provider.getBalance(this.state.selectedAddress);
+    const balance = ethers.utils.formatEther(balanceWei);
+    this.setState({ balanceUZHETH: parseFloat(balance) });
   }
 
   // This method sends an ethereum transaction to transfer tokens.
