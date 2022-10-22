@@ -58,7 +58,7 @@ export class Web3Service {
   }
 
   async faucetMint(address: string): Promise<string> {
-    const tx = await this.accessToken.mint(address, { gasLimit: 1_000_000 });
+    const tx = await this.accessToken.mint(address);
     await tx.wait(1);
     return tx.hash;
   }
