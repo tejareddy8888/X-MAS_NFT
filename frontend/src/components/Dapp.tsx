@@ -2,6 +2,7 @@ import React from 'react';
 
 // We'll use ethers to interact with the Ethereum network and our contract
 import { BigNumber, ethers } from 'ethers';
+import axios from 'axios';
 
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
@@ -31,8 +32,8 @@ const ERROR_CODE_TX_REJECTED_BY_USER = 4001;
 interface DappState {
   // The info of the token (i.e. It's Name and symbol)
   tokenData: {
-    name: undefined;
-    symbol: undefined;
+    name: string;
+    symbol: string;
   };
   // The user's address and balance
   selectedAddress: undefined;
@@ -281,15 +282,19 @@ export class Dapp extends React.Component<{}, DappState> {
   // The next two methods just read from the contract and store the results
   // in the component state.
   async _getTokenData() {
-    const name = await this._token.name();
-    const symbol = await this._token.symbol();
+    // const name = await this._token.name();
+    // const symbol = await this._token.symbol();
+    const name = 'Goerli USDC Coin';
+    const symbol = 'USD';
 
     this.setState({ tokenData: { name, symbol } });
   }
 
   async _updateBalance() {
-    const balance = await this._token.balanceOf(this.state.selectedAddress);
-    this.setState({ balance });
+    // const balance = await this._token.balanceOf(this.state.selectedAddress);
+    const res = await axios.get(`http://localhost:3001/web3/balance/${process.env.REACT_APP_ACCESS_TOKEN_ADDRESS}`);
+    const balance = res.data;
+    this.setState({ balance: BigNumber.from(balance) });
   }
 
   // This method sends an ethereum transaction to transfer tokens.
