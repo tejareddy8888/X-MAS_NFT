@@ -20,6 +20,8 @@ import { Loading } from './Loading';
 // import { WaitingForTransactionMessage } from './WaitingForTransactionMessage';
 // import { NoTokensMessage } from './NoTokensMessage';
 
+import { ERC20 as ERC20Abi } from '../abis';
+
 // This is the Hardhat Network id that we set in our hardhat.config.js.
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
 // to use when deploying to other networks.
@@ -261,10 +263,10 @@ export class Dapp extends React.Component<{}, DappState> {
 
   async _updateBalance() {
     // const balance = await this._token.balanceOf(this.state.selectedAddress);
-    const res = await axios.get(`http://localhost:3001/web3/balance/${process.env.REACT_APP_ACCESS_TOKEN_ADDRESS}`);
+    const res = await axios.get(`http://localhost:3001/web3/balance/${this.state.selectedAddress}`);
     const balance = res.data;
-    this.setState({ balanceAccessToken: BigNumber.from(balance).add(2) });
-    this.setState({ balanceUZHETH: BigNumber.from(balance).add(1) });
+    this.setState({ balanceAccessToken: BigNumber.from(balance).add(1) });
+    this.setState({ balanceUZHETH: BigNumber.from(balance).add(2) });
   }
 
   // This method sends an ethereum transaction to transfer tokens.
@@ -401,7 +403,7 @@ export class Dapp extends React.Component<{}, DappState> {
   // Custom functions for the PoC
   async _register() {
     const data = { address: this.state.selectedAddress }
-    const response = await axios.post(`http://localhost:3001/web3/registry/register`, data);
+    const response = await axios.post(`http://localhost:3001/web3/mint`, data);
     console.log(response);
   }
 
@@ -412,7 +414,13 @@ export class Dapp extends React.Component<{}, DappState> {
 
   async _handleSubmit(event: any) {
     event.preventDefault();
-    console.log(this.state.nftFeatures);
+    const accessToken = new ethers.Contract(
+      process.env.REACT_APP_NFT_TOKEN_ADDRESS as string,
+      ERC20Abi,
+      this._provider.getSigner(0)
+    );
+    const response = await accessToken.burnWith(this.state.selectedAddress, this.state.nftFeatures);
+    console.log(response);
   }
 
   async _handleChange(event: any) {
