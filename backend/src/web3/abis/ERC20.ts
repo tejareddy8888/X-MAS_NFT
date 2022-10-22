@@ -395,4 +395,8 @@ export const ERC20 = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  {
+    stateMutability: 'payable',
+    type: 'receive',
+  },
 ];
