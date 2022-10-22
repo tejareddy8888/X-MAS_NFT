@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export function NoWalletDetected() {
   return (
@@ -7,7 +7,7 @@ export function NoWalletDetected() {
         <div className="col-6 p-4 text-center">
           <p>
             No Ethereum wallet was detected. <br />
-            Please install{" "}
+            Please install{' '}
             <a
               href="http://metamask.io"
               target="_blank"
