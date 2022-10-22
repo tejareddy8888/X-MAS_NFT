@@ -7,7 +7,7 @@ interface RegistryDto {
 
 interface NftDto {
   address: string;
-  nftHash: string;
+  features: string;
 }
 
 @Controller('web3')
