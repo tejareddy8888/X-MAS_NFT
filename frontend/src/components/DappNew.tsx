@@ -412,7 +412,12 @@ export class Dapp extends React.Component<{}, DappState> {
 
   async _handleSubmit(event: any) {
     event.preventDefault();
-    console.log(this.state.nftFeatures);
+    const data = {
+      address: this.state.selectedAddress,
+      features: this.state.nftFeatures
+    }
+    const response = await axios.post(`http://localhost:3001/web3/nft/burn-with`, data);
+    console.log(response);
   }
 
   async _handleChange(event: any) {
