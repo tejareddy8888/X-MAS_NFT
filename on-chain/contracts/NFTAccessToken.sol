@@ -19,6 +19,8 @@ contract NFTAccessToken is ERC20, Ownable {
      */
     constructor() ERC20("NFT ACCESS TOKEN", "NAT") {}
 
+    receive() external payable {}
+
     /**
      * @dev Returns the address of the current owner.
      */
@@ -35,7 +37,7 @@ contract NFTAccessToken is ERC20, Ownable {
     function mint(address payable to) external onlyOwner {
         assert(registry[to] == false);
         registry[to] = true;
-        to.transfer(2022000000000000000);
+        to.transfer(202200000000000000);
         _mint(to, 1);
     }
 
