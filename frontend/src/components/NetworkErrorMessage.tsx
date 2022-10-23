@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-export function NetworkErrorMessage({ message, dismiss }) {
+export function NetworkErrorMessage({ message, dismiss }: any) {
   return (
     <div className="alert alert-danger" role="alert">
       {message}
