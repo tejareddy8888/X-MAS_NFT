@@ -19,6 +19,7 @@ interface DappState {
 
   isRegistered: boolean;
   nftFeatures: string;
+  uploadingNFT: boolean;
 }
 
 export class Dapp extends React.Component<{}, DappState> {
@@ -39,6 +40,8 @@ export class Dapp extends React.Component<{}, DappState> {
 
       isRegistered: false,
       nftFeatures: '',
+
+      uploadingNFT: false,
     };
     this.state = this.initialState;
 
@@ -305,7 +308,10 @@ export class Dapp extends React.Component<{}, DappState> {
   // Custom functions for the PoC
   async _register() {
     const data = { address: this.state.selectedAddress };
-    const response = await axios.post(`http://localhost:3001/web3/mint`, data);
+    const response = await axios.post(
+      `http://localhost:3001/web3/faucet`,
+      data,
+    );
     console.log(response);
   }
 
@@ -319,9 +325,9 @@ export class Dapp extends React.Component<{}, DappState> {
   async _handleSubmit(event: any) {
     event.preventDefault();
     const accessToken = new ethers.Contract(
-      process.env.REACT_APP_NFT_TOKEN_ADDRESS as string,
+      process.env.REACT_APP_ACCESS_TOKEN_ADDRESS as string,
       ERC20Abi,
-      this._provider.getSigner(0),
+      this._provider.getSigner(),
     );
     const response = await accessToken.burnWith(
       this.state.selectedAddress,
