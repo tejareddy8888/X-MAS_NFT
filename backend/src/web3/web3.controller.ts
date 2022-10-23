@@ -1,11 +1,7 @@
-import { Controller, Get, Param, Post, Body } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { Controller, Get, Param, Post, Body, Put } from '@nestjs/common';
 import { Web3Service } from './web3.service';
 
-class AddressDto {
-  @ApiProperty({ type: 'string' })
-  address: string;
-}
+import { AddressDto, NftDto } from '../types';
 
 @Controller('web3')
 export class Web3Controller {
@@ -23,7 +19,7 @@ export class Web3Controller {
     return this.web3Service.getRegistrationStatus(address);
   }
 
-  @Post('mint')
+  @Post('faucet')
   async faucetMint(@Body() request: AddressDto): Promise<string> {
     const { address } = request;
     return await this.web3Service.faucetMint(address);
@@ -31,6 +27,22 @@ export class Web3Controller {
 
   @Get('nft/:tokenId')
   async getNft(@Param('tokenId') tokenId: string): Promise<string> {
-    return await this.getNft(tokenId);
+    return await this.web3Service.getNFTDetails(tokenId);
+  }
+
+  @Get('ipfs/:cid')
+  async fetch(@Param('cid') cid: string): Promise<string> {
+    return await this.web3Service.getNFTFromIPFS(cid);
+  }
+
+  @Post('nft/mint')
+  async mintNFT(@Body() request: NftDto): Promise<string> {
+    const { address, tokenText } = request;
+    return await this.web3Service.mintNFT(address, tokenText);
+  }
+
+  @Get('starPosition/:address')
+  async getStarPosition(@Param('address') address: string): Promise<string> {
+    return await this.web3Service.getStarPosition(address);
   }
 }
