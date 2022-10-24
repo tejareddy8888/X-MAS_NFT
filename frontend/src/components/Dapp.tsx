@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 
 import { ethers, BigNumber } from 'ethers';
 import axios from 'axios';
@@ -18,8 +18,13 @@ interface DappState {
   balanceUZHETH: number;
   isRegistered: boolean;
   nftFeatures: string;
+  faucetTransactionHash: string;
+  nftMintingHash: string;
   uploadingNFT: boolean;
   starPosition: string;
+  file: undefined | File;
+  image: string;
+  ipfsCid: string;
 }
 
 export class Dapp extends React.Component<{}, DappState> {
@@ -44,11 +49,18 @@ export class Dapp extends React.Component<{}, DappState> {
       uploadingNFT: false,
 
       starPosition: '',
+      file: undefined,
+      image: '',
+      ipfsCid: '',
+      faucetTransactionHash: '',
+      nftMintingHash: '',
     };
     this.state = this.initialState;
 
     this._handleChange = this._handleChange.bind(this);
     this._handleSubmit = this._handleSubmit.bind(this);
+    this.setImage = this.setImage.bind(this);
+    this.uploadImage = this.uploadImage.bind(this);
   }
 
   render() {
@@ -112,6 +124,12 @@ export class Dapp extends React.Component<{}, DappState> {
           </div>
         </div>
 
+        {this.state.faucetTransactionHash && (
+          <div className="col-12">
+            <p> Successfully registered and mint the ETH in this transaction {this.state.faucetTransactionHash}, </p>
+          </div>
+        )}
+
         {BigNumber.from(this.state.balanceAccessToken).gt(0) ? (
           <div className="row mt-5">
             <div className="col-12">
@@ -153,6 +171,64 @@ export class Dapp extends React.Component<{}, DappState> {
         ) : (
           <></>
         )}
+
+        {this.state.image && (
+          <img
+            src={`data:image/jpeg;charset=utf-8;base64,${this.state.image}`}
+          />
+        )}
+
+        {/* <div>
+          <form onSubmit={this.uploadImage}>
+            <div>
+              <h1>Ipfs File Upload</h1>
+            </div>
+            <div>
+              <input type="file" onChange={this.setImage} />
+            </div>
+            <div>
+              <button type="submit">Upload</button>
+            </div>
+          </form>
+        </div> */}
+
+        {this.state.uploadingNFT ? (
+          <div>
+            <form onSubmit={this.uploadImage}>
+              <div>
+                <h1>MINT NFT by Uploading</h1>
+              </div>
+              <div>
+                <input type="file" onChange={this.setImage} />
+              </div>
+              <div>
+                <button type="submit">Upload</button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <></>
+        )}
+
+        {this.state.ipfsCid && (
+          <div className="col-12">
+            <p>
+              {' '}
+              Successfully uploaded the image in IPFS with{' '}
+              {`http://${this.state.ipfsCid}.ipfs.dweb.link`},{' '}
+            </p>
+          </div>
+        )}
+
+        {this.state.nftMintingHash && (
+          <div className="col-12">
+            <p>
+              {' '}
+              Successfully mint the image in transaction{' '}
+              {this.state.nftMintingHash},{' '}
+            </p>
+          </div>
+        )}
       </div>
     );
   }
@@ -173,6 +249,7 @@ export class Dapp extends React.Component<{}, DappState> {
       method: 'eth_requestAccounts',
     });
 
+    console.log(selectedAddress);
     // Once we have the address, we can initialize the application.
 
     // First we check the network
@@ -180,6 +257,7 @@ export class Dapp extends React.Component<{}, DappState> {
       return;
     }
 
+    console.log(selectedAddress);
     await this._initialize(selectedAddress);
 
     // We reinitialize it whenever the user changes their account.
@@ -213,6 +291,10 @@ export class Dapp extends React.Component<{}, DappState> {
       selectedAddress: userAddress,
     });
 
+    if (process.env.REACT_APP_NFT_TOKEN_ADDRESS) {
+      this.setState({ uploadingNFT: true });
+    }
+
     // Then, we initialize ethers, fetch the token's data, and start polling
     // for the user's balance.
 
@@ -224,6 +306,7 @@ export class Dapp extends React.Component<{}, DappState> {
     // Custom functions for the PoC
     await this._getRegisteredState();
     await this.retrieveStarPosition();
+    await this.retrieveImageFromIPFSCID();
   }
 
   async _initializeEthers() {
@@ -239,10 +322,11 @@ export class Dapp extends React.Component<{}, DappState> {
   // don't need to poll it. If that's the case, you can just fetch it when you
   // initialize the app, as we do with the token data.
   async _startPollingData() {
-    this._pollDataInterval = setInterval(() => this._updateBalance(), 1000);
+    this._pollDataInterval = setInterval(() => this._updateBalance(), 3000);
 
     // We run it once immediately so we don't have to wait for it
     await this._updateBalance();
+    await this.retrieveImageFromIPFSCID();
   }
 
   _stopPollingData() {
@@ -335,19 +419,58 @@ export class Dapp extends React.Component<{}, DappState> {
     return false;
   }
 
+  setImage(file: ChangeEvent) {
+    const { files } = file.target as HTMLInputElement;
+    if (files && files.length !== 0) {
+      this.setState({ file: files[0] });
+    }
+  }
+
+  async uploadImage(event: any) {
+    event.preventDefault();
+    var formData = new FormData();
+    // @ts-ignore
+    formData.append('photo', this.state.file, 'test');
+    console.log(formData.entries(), formData.entries().next());
+    const ipfsCid = await axios
+      .post(
+        process.env.REACT_APP_BACKEND_API_URL + '/web3/ipfs/upload',
+        formData,
+      )
+      .then((response) => {
+        console.log(response.data);
+        return response.data;
+      });
+
+    this.setState({ ipfsCid });
+
+    const nftMintHash = await axios
+      .post(process.env.REACT_APP_BACKEND_API_URL + '/web3/nft/mint', {
+        address: this.state.selectedAddress,
+        ipfsCid,
+      })
+      .then((response) => {
+        console.log(response.data);
+        return response.data;
+      });
+    this.setState({ nftMintingHash: nftMintHash });
+  }
+
   // Custom functions for the PoC
   async _register() {
     const data = { address: this.state.selectedAddress };
     const response = await axios.post(
-      `http://localhost:3001/web3/faucet`,
+      process.env.REACT_APP_BACKEND_API_URL + `/web3/faucet`,
       data,
     );
-    console.log(response);
+
+    this.setState({ faucetTransactionHash: response.data });
   }
 
   async _getRegisteredState() {
     const response = await axios.get(
-      `http://localhost:3001/web3/registry/${this.state.selectedAddress}`,
+      process.env.REACT_APP_BACKEND_API_URL +
+        `/web3/registry/${this.state.selectedAddress}`,
     );
     this.setState({ isRegistered: response.data });
   }
@@ -381,9 +504,21 @@ export class Dapp extends React.Component<{}, DappState> {
       this.state.isRegistered
     ) {
       const response = await axios.get(
-        `http://localhost:3001/web3/starPosition/${this.state.selectedAddress}`,
+        process.env.REACT_APP_BACKEND_API_URL +
+          `/web3/starPosition/${this.state.selectedAddress}`,
       );
       this.setState({ starPosition: response.data });
+    }
+  }
+
+  async retrieveImageFromIPFSCID() {
+    if (this.state.ipfsCid) {
+      const response = await axios.get(
+        process.env.REACT_APP_BACKEND_API_URL +
+          `/web3/ipfs/${this.state.ipfsCid}`,
+      );
+
+      this.setState({ image: response.data });
     }
   }
 }

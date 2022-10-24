@@ -22,13 +22,14 @@ export class IpfsService {
   async uploadImage(content: ipfsBlob): Promise<string> {
     const response = await this.ipfsClient.add(content, {
       pin: true,
+      hashAlg: `sha2-256`,
       cidVersion: 1,
     });
 
     return response.cid.toString();
   }
 
-  async showImage(cid: string): Promise<string> {
+  async showImage(cid: string): Promise<Buffer> {
     const response = await this.ipfsClient.cat(cid);
     let buffer = Buffer.alloc(0);
 
@@ -38,6 +39,6 @@ export class IpfsService {
       content = await response[Symbol.asyncIterator]().next();
     }
 
-    return buffer.toString();
+    return buffer;
   }
 }

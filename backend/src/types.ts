@@ -4,12 +4,12 @@ export class NftDto {
   @ApiProperty({ type: 'string' })
   address: string;
   @ApiProperty({ type: 'string' })
-  tokenText: string;
+  ipfsCid: string;
 }
 
 export class ipfsBlob {
   path: string;
-  content: string;
+  content: ArrayBuffer;
 }
 
 export class AddressDto {

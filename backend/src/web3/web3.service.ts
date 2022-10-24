@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import axios from 'axios';
 import { ethers, Contract, BigNumber } from 'ethers';
 import { NonceManager } from '@ethersproject/experimental';
 
@@ -70,19 +71,22 @@ export class Web3Service {
     return await this.nftContract.tokenURI(tokenId);
   }
 
-  async mintNFT(sender: string, tokenTxt: string): Promise<string> {
-    const ipfsCID = await this.ipfsService.uploadImage({
-      path: '/test-avatar.jpeg',
-      content: tokenTxt,
+  async onlyUpload(file: Express.Multer.File): Promise<string> {
+    return await this.ipfsService.uploadImage({
+      path: '/test.jpeg',
+      content: file.buffer,
     });
+  }
 
-    const tx = await this.nftContract.mintNFT(sender, ipfsCID);
+  async mintNFT(sender: string, ipfsCid: string): Promise<string> {
+    const tx = await this.nftContract.mintNFT(sender, ipfsCid);
     await tx.wait(1);
     return tx.hash;
   }
 
-  async getNFTFromIPFS(cid: string): Promise<string> {
-    return await this.ipfsService.showImage(cid);
+  async getNFTFromIPFSCID(cid: string): Promise<string> {
+    const response = await this.ipfsService.showImage(cid);
+    return Buffer.from(response).toString('base64');
   }
 
   async getStarPosition(address: string): Promise<string> {
