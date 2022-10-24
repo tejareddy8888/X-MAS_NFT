@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import axios from 'axios';
+import Table from 'react-bootstrap/Table';
 
 import { NoWalletDetected } from './NoWalletDetected';
 import { ConnectWallet } from './ConnectWallet';
@@ -11,15 +12,14 @@ import { ERC20 as ERC20Abi } from '../abis';
 
 // state for this Dapp
 interface DappState {
-  selectedAddress: undefined;
+  selectedAddress: undefined | string;
   networkError: undefined | string;
-
-  balanceAccessToken: undefined | number;
-  balanceUZHETH: undefined | number;
-
+  balanceAccessToken: string;
+  balanceUZHETH: number;
   isRegistered: boolean;
   nftFeatures: string;
   uploadingNFT: boolean;
+  starPosition: string;
 }
 
 export class Dapp extends React.Component<{}, DappState> {
@@ -35,13 +35,15 @@ export class Dapp extends React.Component<{}, DappState> {
       selectedAddress: undefined,
       networkError: undefined,
 
-      balanceAccessToken: undefined,
-      balanceUZHETH: undefined,
+      balanceAccessToken: '0',
+      balanceUZHETH: 0,
 
       isRegistered: false,
       nftFeatures: '',
 
       uploadingNFT: false,
+
+      starPosition: '',
     };
     this.state = this.initialState;
 
@@ -110,7 +112,7 @@ export class Dapp extends React.Component<{}, DappState> {
           </div>
         </div>
 
-        {this.state.balanceAccessToken > 0 ? (
+        {BigNumber.from(this.state.balanceAccessToken).gt(0) ? (
           <div className="row mt-5">
             <div className="col-12">
               <form onSubmit={this._handleSubmit}>
@@ -128,6 +130,26 @@ export class Dapp extends React.Component<{}, DappState> {
               </form>
             </div>
           </div>
+        ) : (
+          <></>
+        )}
+
+        {BigNumber.from(this.state.balanceAccessToken).eq(0) &&
+        this.state.isRegistered ? (
+          <Table striped bordered hover size="sm">
+            <thead>
+              <tr>
+                <th>Address</th>
+                <th>StarPosition</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{this.state.selectedAddress}</td>
+                <td>{this.state.starPosition}</td>
+              </tr>
+            </tbody>
+          </Table>
         ) : (
           <></>
         )}
@@ -158,20 +180,22 @@ export class Dapp extends React.Component<{}, DappState> {
       return;
     }
 
-    this._initialize(selectedAddress);
+    await this._initialize(selectedAddress);
 
     // We reinitialize it whenever the user changes their account.
-    window.ethereum.on('accountsChanged', ([newAddress]: any) => {
+    await window.ethereum.on('accountsChanged', async ([newAddress]: any) => {
       this._stopPollingData();
       // `accountsChanged` event can be triggered with an undefined newAddress.
       // This happens when the user removes the Dapp from the "Connected
       // list of sites allowed access to your addresses" (Metamask > Settings > Connections)
       // To avoid errors, we reset the dapp state
+      console.log(newAddress);
       if (newAddress === undefined) {
         return this._resetState();
       }
 
-      this._initialize(newAddress);
+      this._resetState();
+      await this._initialize(newAddress);
     });
 
     // We reset the dapp state if the network is changed
@@ -181,7 +205,7 @@ export class Dapp extends React.Component<{}, DappState> {
     });
   }
 
-  _initialize(userAddress: any) {
+  async _initialize(userAddress: any) {
     // This method initializes the dapp
 
     // We first store the user's address in the component's state
@@ -195,10 +219,11 @@ export class Dapp extends React.Component<{}, DappState> {
     // Fetching the token data and the user's balance are specific to this
     // sample project, but you can reuse the same initialization pattern.
     this._initializeEthers();
-    this._startPollingData();
+    await this._startPollingData();
 
     // Custom functions for the PoC
-    this._getRegisteredState();
+    await this._getRegisteredState();
+    await this.retrieveStarPosition();
   }
 
   async _initializeEthers() {
@@ -213,11 +238,11 @@ export class Dapp extends React.Component<{}, DappState> {
   // Note that if you don't need it to update in near real time, you probably
   // don't need to poll it. If that's the case, you can just fetch it when you
   // initialize the app, as we do with the token data.
-  _startPollingData() {
+  async _startPollingData() {
     this._pollDataInterval = setInterval(() => this._updateBalance(), 1000);
 
     // We run it once immediately so we don't have to wait for it
-    this._updateBalance();
+    await this._updateBalance();
   }
 
   _stopPollingData() {
@@ -226,11 +251,16 @@ export class Dapp extends React.Component<{}, DappState> {
   }
 
   async _updateBalance() {
-    // balance of the access token
-    const res = await axios.get(
-      `http://localhost:3001/web3/balance/${this.state.selectedAddress}`,
+    const accessToken = new ethers.Contract(
+      process.env.REACT_APP_ACCESS_TOKEN_ADDRESS as string,
+      ERC20Abi,
+      this._provider.getSigner(),
     );
-    this.setState({ balanceAccessToken: res.data });
+    // balance of the access token
+    const res = BigNumber.from(
+      await accessToken.balanceOf(this.state.selectedAddress),
+    ).toString();
+    this.setState({ balanceAccessToken: res });
 
     // balance of UZHETH
     const balanceWei = await this._provider.getBalance(
@@ -338,5 +368,22 @@ export class Dapp extends React.Component<{}, DappState> {
 
   async _handleChange(event: any) {
     this.setState({ nftFeatures: event.target!.value });
+  }
+
+  async retrieveStarPosition() {
+    console.log(
+      this.state.selectedAddress,
+      BigNumber.from(this.state.balanceAccessToken ?? 1).eq(0),
+      this.state.isRegistered,
+    );
+    if (
+      BigNumber.from(this.state.balanceAccessToken ?? 1).eq(0) &&
+      this.state.isRegistered
+    ) {
+      const response = await axios.get(
+        `http://localhost:3001/web3/starPosition/${this.state.selectedAddress}`,
+      );
+      this.setState({ starPosition: response.data });
+    }
   }
 }
