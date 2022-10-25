@@ -12,8 +12,6 @@ import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
 import { memoryStorage } from 'multer';
 
-import Path = require('path');
-
 import { AddressDto, NftDto } from '../types';
 
 @Controller('web3')

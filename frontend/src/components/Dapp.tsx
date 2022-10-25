@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 
-import { ethers, BigNumber } from 'ethers';
+import { ethers, BigNumber, constants } from 'ethers';
 import axios from 'axios';
 import Table from 'react-bootstrap/Table';
 
@@ -9,6 +9,7 @@ import { ConnectWallet } from './ConnectWallet';
 import { Loading } from './Loading';
 
 import { ERC20 as ERC20Abi } from '../abis';
+import { ERC721 as ERC721Abi } from '../abis';
 
 // state for this Dapp
 interface DappState {
@@ -22,6 +23,7 @@ interface DappState {
   nftMintingHash: string;
   uploadingNFT: boolean;
   starPosition: string;
+  nftTokenBalance: number;
   file: undefined | File;
   image: string;
   ipfsCid: string;
@@ -31,7 +33,8 @@ export class Dapp extends React.Component<{}, DappState> {
   initialState: DappState;
   _provider: any;
   _token: any;
-  _pollDataInterval: any;
+  _pollOneSecInterval: any;
+  _poll10SecInterval: any;
 
   constructor(props: any) {
     super(props);
@@ -42,6 +45,7 @@ export class Dapp extends React.Component<{}, DappState> {
 
       balanceAccessToken: '0',
       balanceUZHETH: 0,
+      nftTokenBalance: 0,
 
       isRegistered: false,
       nftFeatures: '',
@@ -57,8 +61,8 @@ export class Dapp extends React.Component<{}, DappState> {
     };
     this.state = this.initialState;
 
-    this._handleChange = this._handleChange.bind(this);
-    this._handleSubmit = this._handleSubmit.bind(this);
+    this.updatedStarPosition = this.updatedStarPosition.bind(this);
+    this.burnToken = this.burnToken.bind(this);
     this.setImage = this.setImage.bind(this);
     this.uploadImage = this.uploadImage.bind(this);
   }
@@ -116,7 +120,7 @@ export class Dapp extends React.Component<{}, DappState> {
             <button
               type="button"
               className="btn btn-success"
-              onClick={() => this._register()}
+              onClick={() => this.faucetRegister()}
               disabled={this.state.isRegistered}
             >
               Register
@@ -126,20 +130,24 @@ export class Dapp extends React.Component<{}, DappState> {
 
         {this.state.faucetTransactionHash && (
           <div className="col-12">
-            <p> Successfully registered and mint the ETH in this transaction {this.state.faucetTransactionHash}, </p>
+            <p>
+              {' '}
+              Successfully registered and mint the ETH in this transaction{' '}
+              {this.state.faucetTransactionHash},{' '}
+            </p>
           </div>
         )}
 
         {BigNumber.from(this.state.balanceAccessToken).gt(0) ? (
           <div className="row mt-5">
             <div className="col-12">
-              <form onSubmit={this._handleSubmit}>
+              <form onSubmit={this.burnToken}>
                 <label>NFT configuration:</label>
                 <input
                   type="textarea"
                   className="form-control"
                   placeholder="Here we type in some features"
-                  onChange={this._handleChange}
+                  onChange={this.updatedStarPosition}
                 />
                 <br />
                 <button type="submit" className="btn btn-primary">
@@ -302,11 +310,6 @@ export class Dapp extends React.Component<{}, DappState> {
     // sample project, but you can reuse the same initialization pattern.
     this._initializeEthers();
     await this._startPollingData();
-
-    // Custom functions for the PoC
-    await this._getRegisteredState();
-    await this.retrieveStarPosition();
-    await this.retrieveImageFromIPFSCID();
   }
 
   async _initializeEthers() {
@@ -322,16 +325,32 @@ export class Dapp extends React.Component<{}, DappState> {
   // don't need to poll it. If that's the case, you can just fetch it when you
   // initialize the app, as we do with the token data.
   async _startPollingData() {
-    this._pollDataInterval = setInterval(() => this._updateBalance(), 3000);
+    this._pollOneSecInterval = setInterval(
+      () => this.pollingOneSecCalls(),
+      5000,
+    );
+    this._poll10SecInterval = setInterval(
+      () => this.polling10SecCalls(),
+      15000,
+    );
 
     // We run it once immediately so we don't have to wait for it
-    await this._updateBalance();
-    await this.retrieveImageFromIPFSCID();
+    await this.pollingOneSecCalls();
   }
 
   _stopPollingData() {
-    clearInterval(this._pollDataInterval);
-    this._pollDataInterval = undefined;
+    clearInterval(this._pollOneSecInterval);
+    this._pollOneSecInterval = undefined;
+  }
+
+  async pollingOneSecCalls() {
+    await this._updateBalance();
+  }
+
+  async polling10SecCalls() {
+    await this.getRegisteredState();
+    await this.retrieveStarPosition();
+    await this.retrieveMintedNFT();
   }
 
   async _updateBalance() {
@@ -419,6 +438,56 @@ export class Dapp extends React.Component<{}, DappState> {
     return false;
   }
 
+  // Custom functions for the PoC
+  async faucetRegister() {
+    const data = { address: this.state.selectedAddress };
+    const response = await axios.post(
+      process.env.REACT_APP_BACKEND_API_URL + `/web3/faucet`,
+      data,
+    );
+
+    this.setState({ faucetTransactionHash: response.data });
+  }
+
+  async getRegisteredState() {
+    const response = await axios.get(
+      process.env.REACT_APP_BACKEND_API_URL +
+        `/web3/registry/${this.state.selectedAddress}`,
+    );
+    this.setState({ isRegistered: response.data });
+  }
+
+  async burnToken(event: any) {
+    event.preventDefault();
+    const accessToken = new ethers.Contract(
+      process.env.REACT_APP_ACCESS_TOKEN_ADDRESS as string,
+      ERC20Abi,
+      this._provider.getSigner(),
+    );
+    const response = await accessToken.burnWith(
+      this.state.selectedAddress,
+      this.state.nftFeatures,
+    );
+    console.log(response);
+  }
+
+  async updatedStarPosition(event: any) {
+    this.setState({ nftFeatures: event.target!.value });
+  }
+
+  async retrieveStarPosition() {
+    if (
+      BigNumber.from(this.state.balanceAccessToken ?? 1).eq(0) &&
+      this.state.isRegistered
+    ) {
+      const response = await axios.get(
+        process.env.REACT_APP_BACKEND_API_URL +
+          `/web3/starPosition/${this.state.selectedAddress}`,
+      );
+      this.setState({ starPosition: response.data });
+    }
+  }
+
   setImage(file: ChangeEvent) {
     const { files } = file.target as HTMLInputElement;
     if (files && files.length !== 0) {
@@ -444,6 +513,8 @@ export class Dapp extends React.Component<{}, DappState> {
 
     this.setState({ ipfsCid });
 
+    console.log(`uploaded image at ipfscid: ${ipfsCid}`);
+
     const nftMintHash = await axios
       .post(process.env.REACT_APP_BACKEND_API_URL + '/web3/nft/mint', {
         address: this.state.selectedAddress,
@@ -453,61 +524,45 @@ export class Dapp extends React.Component<{}, DappState> {
         console.log(response.data);
         return response.data;
       });
+
+    console.log(`uploaded image at ipfscid: ${nftMintHash}`);
     this.setState({ nftMintingHash: nftMintHash });
   }
 
-  // Custom functions for the PoC
-  async _register() {
-    const data = { address: this.state.selectedAddress };
-    const response = await axios.post(
-      process.env.REACT_APP_BACKEND_API_URL + `/web3/faucet`,
-      data,
-    );
-
-    this.setState({ faucetTransactionHash: response.data });
-  }
-
-  async _getRegisteredState() {
-    const response = await axios.get(
-      process.env.REACT_APP_BACKEND_API_URL +
-        `/web3/registry/${this.state.selectedAddress}`,
-    );
-    this.setState({ isRegistered: response.data });
-  }
-
-  async _handleSubmit(event: any) {
-    event.preventDefault();
-    const accessToken = new ethers.Contract(
-      process.env.REACT_APP_ACCESS_TOKEN_ADDRESS as string,
-      ERC20Abi,
+  async retrieveMintedNFT() {
+    console.log(`received retrive NFT call`);
+    const nftToken = new ethers.Contract(
+      process.env.REACT_APP_NFT_TOKEN_ADDRESS as string,
+      ERC721Abi,
       this._provider.getSigner(),
     );
-    const response = await accessToken.burnWith(
-      this.state.selectedAddress,
-      this.state.nftFeatures,
-    );
-    console.log(response);
-  }
 
-  async _handleChange(event: any) {
-    this.setState({ nftFeatures: event.target!.value });
-  }
-
-  async retrieveStarPosition() {
-    console.log(
+    const nftTokenBalance = await nftToken.balanceOf(
       this.state.selectedAddress,
-      BigNumber.from(this.state.balanceAccessToken ?? 1).eq(0),
-      this.state.isRegistered,
     );
-    if (
-      BigNumber.from(this.state.balanceAccessToken ?? 1).eq(0) &&
-      this.state.isRegistered
-    ) {
-      const response = await axios.get(
-        process.env.REACT_APP_BACKEND_API_URL +
-          `/web3/starPosition/${this.state.selectedAddress}`,
+
+    this.setState({ nftTokenBalance });
+
+    if (BigNumber.from(this.state.nftTokenBalance).gt(0)) {
+      console.log(`nft token balance is high`, this.state.nftTokenBalance);
+      const nftTokenInterface = new ethers.utils.Interface(
+        JSON.stringify(ERC721Abi),
       );
-      this.setState({ starPosition: response.data });
+
+      const response = await nftToken.queryFilter(
+        nftToken.filters.Transfer(
+          constants.AddressZero,
+          this.state.selectedAddress,
+        ),
+      );
+
+      const parsedEvent = nftTokenInterface.parseLog(response[0]);
+
+      const ipfsCid = await nftToken.tokenURI(parsedEvent.args.tokenId);
+
+      this.setState({ ipfsCid });
+
+      this.retrieveImageFromIPFSCID();
     }
   }
 
