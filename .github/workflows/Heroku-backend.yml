@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'backend/**'
 
 jobs:
-  build_and_deploy_heroku:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -37,11 +35,16 @@ jobs:
         working-directory: ./backend
         run: yarn build
       
-      - name: deploy heroku
-        uses: akhileshns/heroku-deploy@v3.12.12
+  deploy: ## <-- this is the new stuff
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: "uzh-nft-2022"
           heroku_email: "saitejareddy.pottanigari@uzh.ch"
+          appdir: "backend"
     
           
