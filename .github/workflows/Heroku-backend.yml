@@ -35,7 +35,7 @@ jobs:
         working-directory: ./backend
         run: yarn build
       
-  deploy: ## <-- this is the new stuff
+  deploy: 
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -46,5 +46,6 @@ jobs:
           heroku_app_name: "uzh-nft-2022"
           heroku_email: "saitejareddy.pottanigari@uzh.ch"
           appdir: "backend"
+          procfile: "web: yarn start"
     
           
