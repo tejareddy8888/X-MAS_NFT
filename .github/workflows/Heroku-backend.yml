@@ -1,0 +1,45 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy_heroku:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            ./backend/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('./app/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+            
+      - name: Install dependencies
+        if: steps.yarn-cache.outputs.cache-hit != 'true' # Over here!
+        run: |
+          yarn install --frozen-lockfile
+        working-directory: ./backend
+        
+      - name: build nest
+        working-directory: ./backend
+        run: yarn build
+      
+      - name: deploy heroku
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "uzh-nft-2022"
+          heroku_email: "saitejareddy.pottanigari@uzh.ch"
+    
+          
