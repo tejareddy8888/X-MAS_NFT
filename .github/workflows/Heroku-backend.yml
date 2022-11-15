@@ -9,17 +9,20 @@ jobs:
 
   create-envfile:
     runs-on: ubuntu-latest
+    environment: uzh-nft-2022
     steps:
-    - name: create-env
-      run: |
-          touch .env
-          echo ACCESS_TOKEN_ADDRESS=0x129939616Da39aC8D6DBE65eaD2Ab1523a6a5d74 >> .env
-          echo NFT_TOKEN_ADDRESS=0x2874B1745A5cF0c0f804B8D0235759Ee6e0Ac61A >> .env
-          echo ADMIN_PRIVATEKEY=${{ secrets.ADMIN_PRIVATEKEY }} >> .env
-          echo NETWORK_URL=https://vm-216.s3it.uzh.ch >> .env
-          echo IPFS_PROJECT_ID=2Gd4nFIxYSa4JETkJde7OibyJQp >> .env
-          echo IPFS_PROJECT_SECRET=${{ secrets.IPFS_SECRET }} >> .env
-          cat .env
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v1.3
+      with:
+        envkey_ACCESS_TOKEN_ADDRESS: "0x129939616Da39aC8D6DBE65eaD2Ab1523a6a5d74"
+        envkey_NFT_TOKEN_ADDRESS: "0x2874B1745A5cF0c0f804B8D0235759Ee6e0Ac61A"
+        envkey_ADMIN_PRIVATEKEY: ${{secrets.ADMIN_PRIVATEKEY}}
+        envkey_NETWORK_URL: https://vm-216.s3it.uzh.ch
+        envkey_IPFS_PROJECT_ID: 2Gd4nFIxYSa4JETkJde7OibyJQp
+        envkey_IPFS_PROJECT_SECRET: ${{secrets.IPFS_SECRET}}
+        directory: "backend"
+        file_name: .env
+        fail_on_empty: true
 
   build:
     needs: create-envfile
