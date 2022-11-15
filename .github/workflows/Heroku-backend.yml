@@ -20,7 +20,6 @@ jobs:
         envkey_NETWORK_URL: https://vm-216.s3it.uzh.ch
         envkey_IPFS_PROJECT_ID: 2Gd4nFIxYSa4JETkJde7OibyJQp
         envkey_IPFS_PROJECT_SECRET: ${{secrets.IPFS_SECRET}}
-        directory: "backend"
         file_name: .env
         fail_on_empty: true
 
