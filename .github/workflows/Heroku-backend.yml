@@ -12,14 +12,14 @@ jobs:
     steps:
     - name: create-env
       run: |
-          touch backend/.env
-          echo ACCESS_TOKEN_ADDRESS=0x129939616Da39aC8D6DBE65eaD2Ab1523a6a5d74 >> backend/.env
-          echo NFT_TOKEN_ADDRESS=0x2874B1745A5cF0c0f804B8D0235759Ee6e0Ac61A >> backend/.env
-          echo ADMIN_PRIVATEKEY=${{ secrets.ADMIN_PRIVATEKEY }} >> backend/.env
-          echo NETWORK_URL=https://vm-216.s3it.uzh.ch >> backend/.env
-          echo IPFS_PROJECT_ID=2Gd4nFIxYSa4JETkJde7OibyJQp >> backend/.env
-          echo IPFS_PROJECT_SECRET=${{ secrets.IPFS_SECRET }} >> backend/.env
-          cat backend/.env
+          touch ./backend/.env
+          echo ACCESS_TOKEN_ADDRESS=0x129939616Da39aC8D6DBE65eaD2Ab1523a6a5d74 >> ./backend/.env
+          echo NFT_TOKEN_ADDRESS=0x2874B1745A5cF0c0f804B8D0235759Ee6e0Ac61A >> ./backend/.env
+          echo ADMIN_PRIVATEKEY=${{ secrets.ADMIN_PRIVATEKEY }} >> ./backend/.env
+          echo NETWORK_URL=https://vm-216.s3it.uzh.ch >> ./backend/.env
+          echo IPFS_PROJECT_ID=2Gd4nFIxYSa4JETkJde7OibyJQp >> ./backend/.env
+          echo IPFS_PROJECT_SECRET=${{ secrets.IPFS_SECRET }} >> ./backend/.env
+          cat ./backend/.env
 
   build:
     needs: create-envfile
