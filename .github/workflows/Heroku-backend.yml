@@ -65,6 +65,6 @@ jobs:
           heroku_email: "saitejareddy.pottanigari@uzh.ch"
           appdir: "backend"
           procfile: "web: yarn start:prod"
-          env_file: ".env"
+          env_file: "../.env"
     
           
