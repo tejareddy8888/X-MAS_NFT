@@ -13,8 +13,8 @@ jobs:
     - name: Make envfile
       uses: SpicyPizza/create-envfile@v1.3
       with:
-        envkey_ACCESS_TOKEN_ADDRESS: 0x129939616Da39aC8D6DBE65eaD2Ab1523a6a5d74
-        envkey_NFT_TOKEN_ADDRESS: 0x2874B1745A5cF0c0f804B8D0235759Ee6e0Ac61A
+        envkey_ACCESS_TOKEN_ADDRESS: "0x129939616Da39aC8D6DBE65eaD2Ab1523a6a5d74"
+        envkey_NFT_TOKEN_ADDRESS: "0x2874B1745A5cF0c0f804B8D0235759Ee6e0Ac61A"
         envkey_ADMIN_PRIVATEKEY: ${{secrets.ADMIN_PRIVATEKEY}}
         envkey_NETWORK_URL: https://vm-216.s3it.uzh.ch
         envkey_IPFS_PROJECT_ID: 2Gd4nFIxYSa4JETkJde7OibyJQp
