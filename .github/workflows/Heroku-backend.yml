@@ -47,13 +47,6 @@ jobs:
           heroku_email: "saitejareddy.pottanigari@uzh.ch"
           appdir: "backend"
           procfile: "web: yarn start:prod"
-          env: 
-            ACCESS_TOKEN_ADDRESS=0x129939616Da39aC8D6DBE65eaD2Ab1523a6a5d74
-            NFT_TOKEN_ADDRESS=0x2874B1745A5cF0c0f804B8D0235759Ee6e0Ac61A
-            ADMIN_MNEMONIC=
-            ADMIN_PRIVATEKEY=${{secrets.ADMIN_PRIVATEKEY}}
-            NETWORK_URL=https://vm-216.s3it.uzh.ch
-            IPFS_PROJECT_ID=2Gd4nFIxYSa4JETkJde7OibyJQp
-            IPFS_PROJECT_SECRET=${{secrets.IPFS_SECRET}}
+          env_file: "/.env"
     
           
