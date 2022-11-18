@@ -1,5 +1,16 @@
-import { Controller, Get, Param, Post, Body, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
+import { memoryStorage } from 'multer';
 
 import { AddressDto, NftDto } from '../types';
 
@@ -32,13 +43,35 @@ export class Web3Controller {
 
   @Get('ipfs/:cid')
   async fetch(@Param('cid') cid: string): Promise<string> {
-    return await this.web3Service.getNFTFromIPFS(cid);
+    return await this.web3Service.getNFTFromIPFSCID(cid);
   }
 
   @Post('nft/mint')
   async mintNFT(@Body() request: NftDto): Promise<string> {
-    const { address, tokenText } = request;
-    return await this.web3Service.mintNFT(address, tokenText);
+    const { address, ipfsCid } = request;
+    return await this.web3Service.mintNFT(address, ipfsCid);
+  }
+
+  @Post('ipfs/upload')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: memoryStorage(),
+    }),
+  )
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    return await this.web3Service.onlyUpload(file);
   }
 
   @Get('starPosition/:address')

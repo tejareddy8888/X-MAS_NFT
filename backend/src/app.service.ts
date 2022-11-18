@@ -34,6 +34,6 @@ export class AppService {
       .join('.\n');
   }
   getHello(): string {
-    return 'Hello World!';
+    return 'UZH NFT BACKEND';
   }
 }
