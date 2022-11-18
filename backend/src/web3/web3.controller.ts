@@ -58,7 +58,7 @@ export class Web3Controller {
     schema: {
       type: 'object',
       properties: {
-        file: {
+        photo: {
           type: 'string',
           format: 'binary',
         },
