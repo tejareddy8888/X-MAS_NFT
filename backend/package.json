@@ -9,7 +9,7 @@
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "rm -rf ./dist && export $(cat .env) && nest start",
+    "start": "rm -rf ./dist && nest start",
     "start:dev": "rm -rf ./dist && export $(cat .env) && nest start --watch",
     "start:debug": "rm -rf ./dist && export $(cat .env) && nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -78,5 +78,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "engines": {
+    "node": "16.18.0"
   }
 }
