@@ -5,6 +5,11 @@ export const ERC20 = [
     type: 'constructor',
   },
   {
+    inputs: [],
+    name: 'NoAccess',
+    type: 'error',
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -64,7 +69,7 @@ export const ERC20 = [
         type: 'string',
       },
     ],
-    name: 'StarPosition',
+    name: 'StarDetails',
     type: 'event',
   },
   {
@@ -162,13 +167,8 @@ export const ERC20 = [
   {
     inputs: [
       {
-        internalType: 'address',
-        name: 'to',
-        type: 'address',
-      },
-      {
         internalType: 'string',
-        name: 'starPosition',
+        name: 'starDetails',
         type: 'string',
       },
     ],
@@ -391,6 +391,13 @@ export const ERC20 = [
       },
     ],
     name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'withdrawAll',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',

@@ -7,6 +7,7 @@ import { NonceManager } from '@ethersproject/experimental';
 import { ERC20 as ERC20Abi } from './abis/ERC20';
 import { ERC721 as ERC721Abi } from './abis';
 import { IpfsService } from 'src/ipfs';
+import { StarDetailsDto } from 'src/types';
 
 @Injectable()
 export class Web3Service {
@@ -89,11 +90,31 @@ export class Web3Service {
     return Buffer.from(response).toString('base64');
   }
 
-  async getStarPosition(address: string): Promise<string> {
+  async getStarDetails(address: string): Promise<string> {
     const response = await this.accessToken.queryFilter(
-      this.accessToken.filters.StarPosition(address),
+      this.accessToken.filters.StarDetails(address),
     );
+    if (!response.length) {
+      return '';
+    }
+
     const parsedEvent = this.accessTokenInterface.parseLog(response[0]);
     return parsedEvent.args.data;
+  }
+
+  async getAllStarDetails(): Promise<StarDetailsDto[]> {
+    const response = await this.accessToken.queryFilter(
+      this.accessToken.filters.StarDetails(null),
+    );
+
+    if (!response.length) {
+      return [];
+    }
+    return response.map((e) => {
+      return {
+        address: e.args.user,
+        starDetails: e.args.data,
+      };
+    });
   }
 }
