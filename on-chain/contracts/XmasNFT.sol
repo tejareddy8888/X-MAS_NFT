@@ -7,9 +7,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract XmasNFT is ERC721, Ownable {
     using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
     using Strings for uint256;
-    
+
+    error XmasNFTURINonExistent();
+
+    Counters.Counter private _tokenIds;
     mapping(uint256 => string) private _tokenURIs;
 
     // Base URI
@@ -21,19 +23,18 @@ contract XmasNFT is ERC721, Ownable {
         _baseURIextended = baseURI_;
     }
 
+    function _baseURI() internal view virtual override returns (string memory) {
+        return _baseURIextended;
+    }
+
     function _setTokenURI(uint256 tokenId, string memory _tokenURI)
         internal
         virtual
     {
-        require(
-            _exists(tokenId),
-            "ERC721Metadata: URI set of nonexistent token"
-        );
+        if (_exists(tokenId)) {
+            revert XmasNFTURINonExistent();
+        }
         _tokenURIs[tokenId] = _tokenURI;
-    }
-
-    function _baseURI() internal view virtual override returns (string memory) {
-        return _baseURIextended;
     }
 
     function tokenURI(uint256 tokenId)
@@ -43,10 +44,9 @@ contract XmasNFT is ERC721, Ownable {
         override
         returns (string memory)
     {
-        require(
-            _exists(tokenId),
-            "ERC721Metadata: URI query for nonexistent token"
-        );
+        if (_exists(tokenId)) {
+            revert XmasNFTURINonExistent();
+        }
 
         string memory _tokenURI = _tokenURIs[tokenId];
         string memory base = _baseURI();
@@ -63,14 +63,33 @@ contract XmasNFT is ERC721, Ownable {
         return string(abi.encodePacked(base, tokenId.toString()));
     }
 
-    function mintNFT(address recipient, string memory _tokenURI)
-        public onlyOwner
+    function mint(address recipient, string memory _tokenURI)
+        public
+        onlyOwner
         returns (uint256)
     {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
-        _mint(recipient, newItemId);
+        _safeMint(recipient, newItemId);
         _setTokenURI(newItemId, _tokenURI);
         return newItemId;
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override {
+        ERC721.safeTransferFrom(from, to, tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721)
+        returns (bool)
+    {
+        return ERC721.supportsInterface(interfaceId);
     }
 }

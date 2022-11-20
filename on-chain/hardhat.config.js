@@ -33,7 +33,7 @@ module.exports = {
       ],
     },
     uzheth: {
-      chainId: 702,
+      chainId: 8888,
       url: process.env.NETWORK_URL,
       accounts: [
         process.env.PRIVATE_KEY !== undefined ? process.env.PRIVATE_KEY : "",
