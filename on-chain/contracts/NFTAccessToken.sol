@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 // This is the main building block for smart contracts.
 contract NFTAccessToken is ERC20, Ownable {
-    error NoAccess();
+    error CannotReRegister();
     mapping(address => bool) registry;
 
     event StarDetails(address indexed user, string data);
@@ -36,12 +36,12 @@ contract NFTAccessToken is ERC20, Ownable {
      * the contract.
      */
     function mint(address payable to) external onlyOwner {
-        if (registry[to] == false) {
-            revert NoAccess();
+        if (registry[to] == true) {
+            revert CannotReRegister();
         }
         registry[to] = true;
         _mint(to, 1);
-        to.transfer(2022000000000000000);
+        to.transfer(20220000000000000);
     }
 
     /**

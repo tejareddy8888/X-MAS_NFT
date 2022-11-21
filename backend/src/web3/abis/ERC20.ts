@@ -6,7 +6,7 @@ export const ERC20 = [
   },
   {
     inputs: [],
-    name: 'NoAccess',
+    name: 'CannotReRegister',
     type: 'error',
   },
   {

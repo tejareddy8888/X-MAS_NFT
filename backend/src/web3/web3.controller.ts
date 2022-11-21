@@ -83,4 +83,9 @@ export class Web3Controller {
   async getAllStarDetails(): Promise<StarDetailsDto[]> {
     return await this.web3Service.getAllStarDetails();
   }
+
+  @Get('nftIds/:address')
+  async getNftIds(address: string): Promise<string[]> {
+    return await this.web3Service.getNftIdsOwnedByUser(address);
+  }
 }

@@ -8,9 +8,11 @@ import { ERC20 as ERC20Abi } from './abis/ERC20';
 import { ERC721 as ERC721Abi } from './abis';
 import { IpfsService } from 'src/ipfs';
 import { StarDetailsDto } from 'src/types';
+import { NFTLogger } from 'src/logger';
 
 @Injectable()
 export class Web3Service {
+  private readonly logger: NFTLogger;
   protected provider: ethers.providers.JsonRpcProvider;
   protected accessToken: Contract;
   protected nftContract?: Contract;
@@ -18,6 +20,7 @@ export class Web3Service {
   protected accessTokenInterface: ethers.utils.Interface;
 
   constructor(private readonly ipfsService: IpfsService) {
+    this.logger = new NFTLogger(Web3Service.name);
     this.provider = new ethers.providers.JsonRpcProvider(
       process.env.NETWORK_URL,
     );
@@ -63,7 +66,7 @@ export class Web3Service {
   }
 
   async faucetMint(address: string): Promise<string> {
-    const tx = await this.accessToken.mint(address);
+    const tx = await this.accessToken.mint(address, { gasLimit: 200_000 });
     await tx.wait(1);
     return tx.hash;
   }
@@ -80,6 +83,10 @@ export class Web3Service {
   }
 
   async mintNFT(sender: string, ipfsCid: string): Promise<string> {
+    const registeredStatus = await this.getRegistrationStatus(sender);
+    if (!registeredStatus) {
+      throw Error('Account mentioned is already registered with us');
+    }
     const tx = await this.nftContract.mintNFT(sender, ipfsCid);
     await tx.wait(1);
     return tx.hash;
@@ -91,6 +98,13 @@ export class Web3Service {
   }
 
   async getStarDetails(address: string): Promise<string> {
+    const registeredStatus = await this.getRegistrationStatus(address);
+    const balance = await this.getBalance(address);
+    if (!registeredStatus || BigNumber.from(balance).gt(0)) {
+      throw Error(
+        'Account mentioned is not registered or did not burn the access token ',
+      );
+    }
     const response = await this.accessToken.queryFilter(
       this.accessToken.filters.StarDetails(address),
     );
@@ -116,5 +130,16 @@ export class Web3Service {
         starDetails: e.args.data,
       };
     });
+  }
+
+  async getNftIdsOwnedByUser(user: string): Promise<string[]> {
+    const response = await this.nftContract.queryFilter(
+      this.nftContract.filters.Transfer(null, user),
+    );
+
+    if (!response.length) {
+      return [];
+    }
+    return response.map((e) => e.args.tokenId);
   }
 }
