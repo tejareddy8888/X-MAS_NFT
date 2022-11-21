@@ -5,6 +5,11 @@ export const ERC721 = [
     type: 'constructor',
   },
   {
+    inputs: [],
+    name: 'XmasNFTURINonExistent',
+    type: 'error',
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -191,7 +196,7 @@ export const ERC721 = [
         type: 'string',
       },
     ],
-    name: 'mintNFT',
+    name: 'mint',
     outputs: [
       {
         internalType: 'uint256',

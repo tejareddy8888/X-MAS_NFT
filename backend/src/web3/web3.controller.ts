@@ -12,7 +12,7 @@ import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
 import { memoryStorage } from 'multer';
 
-import { AddressDto, NftDto } from '../types';
+import { AddressDto, NftDto, StarDetailsDto } from '../types';
 
 @Controller('web3')
 export class Web3Controller {
@@ -74,8 +74,18 @@ export class Web3Controller {
     return await this.web3Service.onlyUpload(file);
   }
 
-  @Get('starPosition/:address')
-  async getStarPosition(@Param('address') address: string): Promise<string> {
-    return await this.web3Service.getStarPosition(address);
+  @Get('starDetails/:address')
+  async getStarDetails(@Param('address') address: string): Promise<string> {
+    return await this.web3Service.getStarDetails(address);
+  }
+
+  @Get('allStarDetails')
+  async getAllStarDetails(): Promise<StarDetailsDto[]> {
+    return await this.web3Service.getAllStarDetails();
+  }
+
+  @Get('nftIds/:address')
+  async getNftIds(address: string): Promise<string[]> {
+    return await this.web3Service.getNftIdsOwnedByUser(address);
   }
 }

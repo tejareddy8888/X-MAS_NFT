@@ -16,3 +16,10 @@ export class AddressDto {
   @ApiProperty({ type: 'string' })
   address: string;
 }
+
+export class StarDetailsDto {
+  @ApiProperty({ type: 'string' })
+  address: string;
+  @ApiProperty({ type: 'string' })
+  starDetails: string;
+}

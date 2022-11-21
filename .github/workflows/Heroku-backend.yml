@@ -19,10 +19,10 @@ jobs:
           appdir: "backend"
           procfile: "web: yarn start:prod"
         env:
-          HD_ACCESS_TOKEN_ADDRESS: "0xEcE2fd9Dda76AeDe2Cd2a8549aE348C681bC4f47"
-          HD_NFT_TOKEN_ADDRESS: "0x7cbDE8Bc148ca3c82F93E4F163042Add92a0dDd6"
+          HD_ACCESS_TOKEN_ADDRESS: "0xE2C9eB07Ed48141fAdCC4F26c2f4eBC03eE9Eac4"
+          HD_NFT_TOKEN_ADDRESS: "0x8374D13f841BF4737E58f7C6e6a60Fb050e33Aa5"
           HD_ADMIN_PRIVATEKEY: ${{secrets.ADMIN_PRIVATEKEY}}
-          HD_NETWORK_URL: https://goerli.infura.io/v3/c7a7f78ad6074cfaacb1fc4be2b703a0
+          HD_NETWORK_URL: https://vm-216.s3it.uzh.ch
           HD_IPFS_PROJECT_ID: 2Gd4nFIxYSa4JETkJde7OibyJQp
           HD_IPFS_PROJECT_SECRET: ${{secrets.IPFS_SECRET}}
 
