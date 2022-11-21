@@ -14,4 +14,4 @@ on-chain is built using hardhat framework
 
 ## UZH ETH POW
 NFT Access Token deployed address: 0xE2C9eB07Ed48141fAdCC4F26c2f4eBC03eE9Eac4
-NFT Factory Token address: 0x2aE0FCbAB0D1C052E293fecD22c2059756247188
+NFT Factory Token address: 0xC7a2BC8a9fF5D825535D71A264A867918F35501b

@@ -44,7 +44,7 @@ contract XmasNFT is ERC721, Ownable {
         override
         returns (string memory)
     {
-        if (_exists(tokenId)) {
+        if (!_exists(tokenId)) {
             revert XmasNFTURINonExistent();
         }
 
@@ -73,14 +73,6 @@ contract XmasNFT is ERC721, Ownable {
         _safeMint(recipient, newItemId);
         _setTokenURI(newItemId, _tokenURI);
         return newItemId;
-    }
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
-        ERC721.safeTransferFrom(from, to, tokenId);
     }
 
     function supportsInterface(bytes4 interfaceId)
