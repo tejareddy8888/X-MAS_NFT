@@ -31,7 +31,7 @@ contract XmasNFT is ERC721, Ownable {
         internal
         virtual
     {
-        if (_exists(tokenId)) {
+        if (!_exists(tokenId)) {
             revert XmasNFTURINonExistent();
         }
         _tokenURIs[tokenId] = _tokenURI;

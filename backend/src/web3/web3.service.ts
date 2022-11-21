@@ -83,10 +83,6 @@ export class Web3Service {
   }
 
   async mintNFT(sender: string, ipfsCid: string): Promise<string> {
-    const registeredStatus = await this.getRegistrationStatus(sender);
-    if (!registeredStatus) {
-      throw Error('Account mentioned is already registered with us');
-    }
     const tx = await this.nftContract.mintNFT(sender, ipfsCid);
     await tx.wait(1);
     return tx.hash;
