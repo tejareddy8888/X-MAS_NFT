@@ -68,11 +68,6 @@ describe("NFTAccessToken Contract", function () {
       expect(await accessToken.owner()).to.equal(owner.address);
     });
 
-    it("Should assign the total supply of tokens to the owner", async function () {
-      const { accessToken, owner } = await loadFixture(deployTokenFixture);
-      const ownerBalance = await accessToken.balanceOf(owner.address);
-      expect(await accessToken.totalSupply()).to.equal(ownerBalance);
-    });
   });
 
   describe("Mint", function() {
@@ -85,12 +80,14 @@ describe("NFTAccessToken Contract", function () {
       expect(!await accessToken.registrationStatus(addr1.address));
       await accessToken.mint(addr1.address);
       expect(await accessToken.balanceOf(addr1.address)).to.equal(1);
+      expect(await ethers.provider.getBalance(addr1.address)).to.equal("20220000000000000");
       expect(await accessToken.registrationStatus(addr1.address));
 
       // Mint token for addr2
       expect(!await accessToken.registrationStatus(addr2.address));
       await accessToken.mint(addr2.address);
       expect(await accessToken.balanceOf(addr2.address)).to.equal(1);
+      expect(await ethers.provider.getBalance(addr2.address)).to.equal("20220000000000000");
       expect(await accessToken.registrationStatus(addr2.address));
 
       // Check the ether balance
