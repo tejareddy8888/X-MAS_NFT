@@ -1,3 +1,4 @@
+require("@nomiclabs/hardhat-ethers");
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
@@ -21,6 +22,7 @@ module.exports = {
           balance: "100000000000000000000",
         },
       ],
+      gas: 2000000,
     },
     goerli: {
       chainId: 5,
