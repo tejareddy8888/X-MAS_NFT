@@ -148,7 +148,7 @@ describe("XmasNFT Contract", function () {
         to: addr1.address,
         value: "20220000000000000"
       });
-      // Try calling setBaseURI from addr1
+      // Try calling mint from addr1
       await expect(nft.connect(addr1).mint(addr1.address, "")).to.be.reverted;
     });
 
