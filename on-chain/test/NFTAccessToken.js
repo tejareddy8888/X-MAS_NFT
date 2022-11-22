@@ -38,7 +38,7 @@ describe("NFTAccessToken Contract", function () {
     // Send funds to the contract address
     await owner.sendTransaction({
       to: accessToken.address,
-      value: "40440000000000000"
+      value: "20220000000000000"
     });
 
     // Create random addresses
@@ -82,13 +82,6 @@ describe("NFTAccessToken Contract", function () {
       expect(await accessToken.balanceOf(addr1.address)).to.equal(1);
       expect(await ethers.provider.getBalance(addr1.address)).to.equal("20220000000000000");
       expect(await accessToken.registrationStatus(addr1.address));
-
-      // Mint token for addr2
-      expect(!await accessToken.registrationStatus(addr2.address));
-      await accessToken.mint(addr2.address);
-      expect(await accessToken.balanceOf(addr2.address)).to.equal(1);
-      expect(await ethers.provider.getBalance(addr2.address)).to.equal("20220000000000000");
-      expect(await accessToken.registrationStatus(addr2.address));
 
       // Check the ether balance
       expect(await ethers.provider.getBalance(accessToken.address)).to.equal(0);
@@ -134,7 +127,6 @@ describe("NFTAccessToken Contract", function () {
         deployTokenFixture
       );
       const ownerBalance = await ethers.provider.getBalance(owner.address);
-      const accessTokenBalance = await ethers.provider.getBalance(accessToken.address);
 
       // withdraw all ethers
       await accessToken.withdrawAll();
@@ -144,5 +136,22 @@ describe("NFTAccessToken Contract", function () {
     });
 
   });
+
+  describe("OnlyOwner", function () {
+
+    it("Should not be able to mint if not owner", async function () {
+      const { accessToken, owner, addr1 } = await loadFixture(
+        deployTokenFixture
+      );
+      // Send some funds to addr1
+      await owner.sendTransaction({
+        to: addr1.address,
+        value: "20220000000000000"
+      });
+      // Try calling mint from addr1
+      await expect(accessToken.connect(addr1).mint(addr1.address)).to.be.reverted;
+    });
+
+  })
 
 });

@@ -124,4 +124,34 @@ describe("XmasNFT Contract", function () {
 
   });
 
+  describe("OnlyOwner", function () {
+
+    it("Should not be able to set the baseURI if not owner", async function () {
+      const { nft, owner, addr1 } = await loadFixture(
+        deployTokenFixture
+      );
+      // Send some funds to addr1
+      await owner.sendTransaction({
+        to: addr1.address,
+        value: "20220000000000000"
+      });
+      // Try calling setBaseURI from addr1
+      await expect(nft.connect(addr1).setBaseURI("foo")).to.be.reverted;
+    });
+
+    it("Should not be able to mint if not owner", async function () {
+      const { nft, owner, addr1 } = await loadFixture(
+        deployTokenFixture
+      );
+      // Send some funds to addr1
+      await owner.sendTransaction({
+        to: addr1.address,
+        value: "20220000000000000"
+      });
+      // Try calling setBaseURI from addr1
+      await expect(nft.connect(addr1).mint(addr1.address, "")).to.be.reverted;
+    });
+
+  });
+
 });
