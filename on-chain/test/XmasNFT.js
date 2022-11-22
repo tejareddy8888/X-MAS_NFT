@@ -19,7 +19,7 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 // `describe` receives the name of a section of your test suite, and a
 // callback. The callback must define the tests of that section. This callback
 // can't be an async function.
-describe("XmasNFT contract", function () {
+describe("XmasNFT Contract", function () {
   // We define a fixture to reuse the same setup in every test. We use
   // loadFixture to run this setup once, snapshot that state, and reset Hardhat
   // Network to that snapshot in every test.
