@@ -40,6 +40,14 @@ describe("XmasNFT contract", function () {
     return { Token, nft, owner, addr1, addr2 };
   }
 
+  async function mintNFT(nft, addr, tokenURI) {
+    const txResponse = await nft.mint(addr.address, tokenURI);
+    const txReceipt = await txResponse.wait();
+    const [transferEvent] = txReceipt.events;
+    const { tokenId } = transferEvent.args;
+    return tokenId;
+  }
+
   // You can nest describe calls to create subsections.
   describe("Deployment", function () {
     // `it` is another Mocha function. This is the one you use to define each
@@ -82,8 +90,8 @@ describe("XmasNFT contract", function () {
       const { nft, addr1 } = await loadFixture(
         deployTokenFixture
       );
-      const tokenId1 = await nft.mint(addr1.address, "");
-      const tokenId2 = await nft.mint(addr1.address, "");
+      const tokenId1 = await mintNFT(nft, addr1, "");
+      const tokenId2 = await mintNFT(nft, addr1, "");
       expect(tokenId1).to.not.equal(tokenId2);
     });
 
@@ -91,10 +99,12 @@ describe("XmasNFT contract", function () {
       const { nft, addr1 } = await loadFixture(
         deployTokenFixture
       );
-      const tokenId1 = await nft.mint(addr1.address, "foo");
+      const tokenId1 = await mintNFT(nft, addr1, "foo");
       const tokenURI1 = await nft.tokenURI(tokenId1);
-      const tokenId2 = await nft.mint(addr1.address, "foo");
+
+      const tokenId2 = await mintNFT(nft, addr1, "foo");
       const tokenURI2 = await nft.tokenURI(tokenId2);
+
       expect(tokenURI1).to.equal(tokenURI2);
     });
 
@@ -102,10 +112,13 @@ describe("XmasNFT contract", function () {
       const { nft, addr1 } = await loadFixture(
         deployTokenFixture
       );
-      const tokenId = await nft.mint(addr1.address, "foo");
-      const tokenURI1 = await nft.tokenURI(tokenId);
+      const tokenId1 = await mintNFT(nft, addr1, "foo");
+      const tokenURI1 = await nft.tokenURI(tokenId1);
+
       await nft.setBaseURI("bar");
-      const tokenURI2 = await nft.tokenURI(tokenId);
+      const tokenId2 = await mintNFT(nft, addr1, "foo");
+      const tokenURI2 = await nft.tokenURI(tokenId2);
+
       expect(tokenURI1).to.not.equal(tokenURI2);
     });
 
