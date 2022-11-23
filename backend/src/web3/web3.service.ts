@@ -65,7 +65,6 @@ export class Web3Service {
 
   async faucetMint(address: string): Promise<string> {
     const tx = await this.accessToken.mint(address, { gasLimit: 200_000 });
-    await tx.wait(1);
     return tx.hash;
   }
 
@@ -82,7 +81,6 @@ export class Web3Service {
       throw Error('Account mentioned is not registered with us');
     }
     const tx = await this.nftContract.mint(sender, ipfsCid);
-    await tx.wait(1);
     return tx.hash;
   }
 
