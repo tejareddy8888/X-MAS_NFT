@@ -23,3 +23,10 @@ export class StarDetailsDto {
   @ApiProperty({ type: 'string' })
   starDetails: string;
 }
+
+export class NftTokenDetails {
+  @ApiProperty({ type: 'string' })
+  tokenID: string;
+  @ApiProperty({ type: 'string' })
+  ipfsURL: string;
+}

@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
-
-import axios from 'axios';
 import { ethers, Contract, BigNumber } from 'ethers';
 import { NonceManager } from '@ethersproject/experimental';
 
 import { ERC20 as ERC20Abi } from './abis/ERC20';
 import { ERC721 as ERC721Abi } from './abis';
 import { IpfsService } from 'src/ipfs';
-import { StarDetailsDto } from 'src/types';
+import { NftTokenDetails, StarDetailsDto } from 'src/types';
 import { NFTLogger } from 'src/logger';
 
 @Injectable()
@@ -71,10 +69,6 @@ export class Web3Service {
     return tx.hash;
   }
 
-  async getNFTDetails(tokenId: string): Promise<string> {
-    return await this.nftContract.tokenURI(tokenId);
-  }
-
   async onlyUpload(file: Express.Multer.File): Promise<string> {
     return await this.ipfsService.uploadImage({
       path: '/test.jpeg',
@@ -87,7 +81,7 @@ export class Web3Service {
     if (!registeredStatus) {
       throw Error('Account mentioned is not registered with us');
     }
-    const tx = await this.nftContract.mintNFT(sender, ipfsCid);
+    const tx = await this.nftContract.mint(sender, ipfsCid);
     await tx.wait(1);
     return tx.hash;
   }
@@ -140,6 +134,26 @@ export class Web3Service {
     if (!response.length) {
       return [];
     }
-    return response.map((e) => e.args.tokenId);
+    return response.map((e) => BigNumber.from(e.args.tokenId).toString());
+  }
+
+  async getTokenUriFromNFTId(tokenId: string): Promise<string> {
+    return await this.nftContract.tokenURI(tokenId);
+  }
+
+  async getNfts(user: string): Promise<NftTokenDetails[]> {
+    const response = await this.getNftIdsOwnedByUser(user);
+    if (!response.length) {
+      return [];
+    }
+    return await Promise.all(
+      response.map(async (tokenID) => {
+        const tokenUri = await this.getTokenUriFromNFTId(tokenID);
+        return {
+          tokenID,
+          ipfsURL: `https://${tokenUri}.ipfs.dweb.link/`,
+        };
+      }),
+    );
   }
 }

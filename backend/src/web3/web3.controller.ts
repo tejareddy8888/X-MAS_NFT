@@ -12,7 +12,7 @@ import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
 import { memoryStorage } from 'multer';
 
-import { AddressDto, NftDto, StarDetailsDto } from '../types';
+import { AddressDto, NftDto, NftTokenDetails, StarDetailsDto } from '../types';
 
 @Controller('web3')
 export class Web3Controller {
@@ -34,11 +34,6 @@ export class Web3Controller {
   async faucetMint(@Body() request: AddressDto): Promise<string> {
     const { address } = request;
     return await this.web3Service.faucetMint(address);
-  }
-
-  @Get('nft/:tokenId')
-  async getNft(@Param('tokenId') tokenId: string): Promise<string> {
-    return await this.web3Service.getNFTDetails(tokenId);
   }
 
   @Get('ipfs/:cid')
@@ -85,7 +80,17 @@ export class Web3Controller {
   }
 
   @Get('nftIds/:address')
-  async getNftIds(address: string): Promise<string[]> {
+  async getNftIds(@Param('address') address: string): Promise<string[]> {
     return await this.web3Service.getNftIdsOwnedByUser(address);
+  }
+
+  @Get('tokenUri/:tokenId')
+  async getTokenURIByNftId(@Param('tokenId') tokenId: string): Promise<string> {
+    return await this.web3Service.getTokenUriFromNFTId(tokenId);
+  }
+
+  @Get('nfts/:address')
+  async getNFTs(@Param('address') address: string): Promise<NftTokenDetails[]> {
+    return await this.web3Service.getNfts(address);
   }
 }
