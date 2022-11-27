@@ -25,14 +25,14 @@ module.exports = {
       gas: 2000000,
     },
     goerli: {
-      chainId: 5,
+      chainId: parseInt(process.env.NETWORK_CHAINID),
       url: process.env.NETWORK_URL,
       accounts: [
         process.env.PRIVATE_KEY !== undefined ? process.env.PRIVATE_KEY : "",
       ],
     },
     uzheth: {
-      chainId: 702,
+      chainId: parseInt(process.env.NETWORK_CHAINID),
       url: process.env.NETWORK_URL,
       accounts: [
         process.env.PRIVATE_KEY !== undefined ? process.env.PRIVATE_KEY : "",

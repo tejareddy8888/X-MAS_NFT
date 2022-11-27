@@ -41,7 +41,7 @@ contract NFTAccessToken is ERC20, Ownable {
         }
         registry[to] = true;
         _mint(to, 1);
-        to.transfer(20220000000000000);
+        to.transfer(2022000000000000000);
     }
 
     /**
