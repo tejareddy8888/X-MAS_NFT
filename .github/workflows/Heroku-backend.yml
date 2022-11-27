@@ -19,10 +19,10 @@ jobs:
           appdir: "backend"
           procfile: "web: yarn start:prod"
         env:
-          HD_ACCESS_TOKEN_ADDRESS: "0xE2C9eB07Ed48141fAdCC4F26c2f4eBC03eE9Eac4"
-          HD_NFT_TOKEN_ADDRESS: "0x8374D13f841BF4737E58f7C6e6a60Fb050e33Aa5"
+          HD_ACCESS_TOKEN_ADDRESS: "0x0a039D3524a741cA71Ac6572Fbf388bD46F704Fa"
+          HD_NFT_TOKEN_ADDRESS: "0x6de10EAe8b902F9C7cc03C72Ca477A6346508e5D"
           HD_ADMIN_PRIVATEKEY: ${{secrets.ADMIN_PRIVATEKEY}}
-          HD_NETWORK_URL: https://vm-216.s3it.uzh.ch
+          HD_NETWORK_URL: http://130.60.24.200:8545
           HD_IPFS_PROJECT_ID: 2Gd4nFIxYSa4JETkJde7OibyJQp
           HD_IPFS_PROJECT_SECRET: ${{secrets.IPFS_SECRET}}
 
