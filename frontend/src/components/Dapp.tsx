@@ -394,9 +394,8 @@ export class Dapp extends React.Component<{}, DappState> {
 
   // This method checks if we are connected to the right chain
   async _checkNetwork() {
-    if (
-      window.ethereum.chainId === process.env.REACT_APP_CHAIN_ID!.toString()
-    ) {
+    console.log(window.ethereum.chainId);
+    if (window.ethereum.chainId == process.env.REACT_APP_CHAIN_ID!.toString()) {
       return true;
     }
 
@@ -413,9 +412,15 @@ export class Dapp extends React.Component<{}, DappState> {
             method: 'wallet_addEthereumChain',
             params: [
               {
-                chainId: process.env.REACT_APP_CHAIN_ID,
-                chainName: process.env.REACT_APP_CHAIN_NAME,
-                rpcUrls: [process.env.REACT_APP_RPC_URL],
+                chainId: '0x22b8',
+                chainName: 'UZHETHPoS',
+                nativeCurrency: {
+                  name: 'UZH Ethereum PoS',
+                  symbol: 'UZETHs',
+                  decimals: 18,
+                },
+                rpcUrls: ['https://rpc.uzheths.ifi.uzh.ch'],
+                blockExplorerUrls: ['https://uzheths.ifi.uzh.ch'],
               },
             ],
           });
@@ -464,10 +469,7 @@ export class Dapp extends React.Component<{}, DappState> {
       ERC20Abi,
       this._provider.getSigner(),
     );
-    const response = await accessToken.burnWith(
-      this.state.selectedAddress,
-      this.state.nftFeatures,
-    );
+    const response = await accessToken.burnWith(this.state.nftFeatures);
     console.log(response);
   }
 
@@ -482,7 +484,7 @@ export class Dapp extends React.Component<{}, DappState> {
     ) {
       const response = await axios.get(
         process.env.REACT_APP_BACKEND_API_URL +
-          `/web3/starPosition/${this.state.selectedAddress}`,
+          `/web3/starDetails/${this.state.selectedAddress}`,
       );
       this.setState({ starPosition: response.data });
     }
