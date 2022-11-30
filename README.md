@@ -12,15 +12,6 @@ on-chain is built using hardhat framework
 
 ### Contract address
 
-## UZH ETH POW
-NFT Access Token deployed address: 0xE2C9eB07Ed48141fAdCC4F26c2f4eBC03eE9Eac4
-NFT Factory Token address: 0x8374D13f841BF4737E58f7C6e6a60Fb050e33Aa5
-
-## UZH ETH POS
-NFT Access Token deployed address: 0x0a039D3524a741cA71Ac6572Fbf388bD46F704Fa
-NFT Factory Token address: 0x6de10EAe8b902F9C7cc03C72Ca477A6346508e5D
-
-
 ## UZH ETH Production POS
-NFT Access Token deployed address: 0xaB5C50ea5b5cb64b04852cf709e951Ec9934CeF1
-NFT Factory Token address: 0xC611C182d8f30c6B7C891C7039732f216258008A
+NFT Access Token deployed address: 0x07463348F43a836490C6dd2D392E12F4fC66Bd08
+NFT Factory Token address: 0x1Bb58364F653AC165E5c19c1a4C84674be713AB6
