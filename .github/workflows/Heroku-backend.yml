@@ -19,8 +19,8 @@ jobs:
           appdir: "backend"
           procfile: "web: yarn start:prod"
         env:
-          HD_ACCESS_TOKEN_ADDRESS: "0x0a039D3524a741cA71Ac6572Fbf388bD46F704Fa"
-          HD_NFT_TOKEN_ADDRESS: "0x6de10EAe8b902F9C7cc03C72Ca477A6346508e5D"
+          HD_ACCESS_TOKEN_ADDRESS: "0x07463348F43a836490C6dd2D392E12F4fC66Bd08"
+          HD_NFT_TOKEN_ADDRESS: "0x1Bb58364F653AC165E5c19c1a4C84674be713AB6"
           HD_ADMIN_PRIVATEKEY: ${{secrets.ADMIN_PRIVATEKEY}}
           HD_NETWORK_URL: https://rpc.uzheths.ifi.uzh.ch
           HD_IPFS_PROJECT_ID: 2Gd4nFIxYSa4JETkJde7OibyJQp
