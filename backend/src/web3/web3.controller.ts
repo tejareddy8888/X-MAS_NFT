@@ -31,7 +31,7 @@ export class Web3Controller {
   }
 
   @Post('faucet')
-  async faucetMint(@Body() request: AddressDto): Promise<string> {
+  async faucetMint(@Body() request: AddressDto): Promise<boolean> {
     const { address } = request;
     return await this.web3Service.faucetMint(address);
   }
@@ -42,7 +42,7 @@ export class Web3Controller {
   }
 
   @Post('nft/mint')
-  async mintNFT(@Body() request: NftDto): Promise<string> {
+  async mintNFT(@Body() request: NftDto): Promise<boolean> {
     const { address, ipfsCid } = request;
     return await this.web3Service.mintNFT(address, ipfsCid);
   }

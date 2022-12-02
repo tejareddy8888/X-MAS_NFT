@@ -27,6 +27,7 @@ interface DappState {
   file: undefined | File;
   image: string;
   ipfsCid: string;
+  nftTransfer: string;
 }
 
 export class Dapp extends React.Component<{}, DappState> {
@@ -58,6 +59,7 @@ export class Dapp extends React.Component<{}, DappState> {
       ipfsCid: '',
       faucetTransactionHash: '',
       nftMintingHash: '',
+      nftTransfer: 'true',
     };
     this.state = this.initialState;
 
@@ -65,6 +67,7 @@ export class Dapp extends React.Component<{}, DappState> {
     this.burnToken = this.burnToken.bind(this);
     this.setImage = this.setImage.bind(this);
     this.uploadImage = this.uploadImage.bind(this);
+    this.sendNFT = this.sendNFT.bind(this);
   }
 
   render() {
@@ -237,6 +240,20 @@ export class Dapp extends React.Component<{}, DappState> {
             </p>
           </div>
         )}
+
+        {this.state.nftTransfer && (
+          <div className="row mt-5">
+            <div className="col-12">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                onClick={this.sendNFT}
+              >
+                Transfer
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -362,7 +379,10 @@ export class Dapp extends React.Component<{}, DappState> {
     // balance of the access token
     const res = BigNumber.from(
       await accessToken.balanceOf(this.state.selectedAddress),
-    ).toString();
+    )
+      .mul(BigNumber.from(10).pow(18))
+      .toString();
+
     this.setState({ balanceAccessToken: res });
 
     // balance of UZHETH
@@ -577,5 +597,20 @@ export class Dapp extends React.Component<{}, DappState> {
 
       this.setState({ image: response.data });
     }
+  }
+
+  async sendNFT() {
+    const nftToken = new ethers.Contract(
+      process.env.REACT_APP_NFT_TOKEN_ADDRESS as string,
+      ERC721Abi,
+      this._provider.getSigner(),
+    );
+
+    const Tx = await nftToken.transferFrom(
+      this.state.selectedAddress,
+      '0xd9dC96857daD6E570a771E8E8Ef6a94B08E55D9A',
+      1,
+    );
+    await Tx.wait();
   }
 }
