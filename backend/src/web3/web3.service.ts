@@ -67,9 +67,9 @@ export class Web3Service {
     const tx = await this.accessToken.mint(address, { gasLimit: 200_000 });
     const txReceipt = await tx.wait(1);
     if (txReceipt.status) {
-      return txReceipt.transactionHash;
+      return !!txReceipt.status;
     } else {
-      return txReceipt.status;
+      return !!txReceipt.status;
     }
   }
 
@@ -89,9 +89,9 @@ export class Web3Service {
     const tx = await this.nftContract.mint(sender, ipfsCid);
     const txReceipt = await tx.wait(1);
     if (txReceipt.status) {
-      return txReceipt.status;
+      return !!txReceipt.status;
     } else {
-      return txReceipt.status;
+      return !!txReceipt.status;
     }
   }
 
