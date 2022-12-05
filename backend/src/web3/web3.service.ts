@@ -63,9 +63,14 @@ export class Web3Service {
     return await this.accessToken.registrationStatus(address);
   }
 
-  async faucetMint(address: string): Promise<string> {
+  async faucetMint(address: string): Promise<boolean> {
     const tx = await this.accessToken.mint(address, { gasLimit: 200_000 });
-    return tx.hash;
+    const txReceipt = await tx.wait(1);
+    if (txReceipt.status) {
+      return !!txReceipt.status;
+    } else {
+      return !!txReceipt.status;
+    }
   }
 
   async onlyUpload(file: Express.Multer.File): Promise<string> {
@@ -75,13 +80,19 @@ export class Web3Service {
     });
   }
 
-  async mintNFT(sender: string, ipfsCid: string): Promise<string> {
+  async mintNFT(sender: string, ipfsCid: string): Promise<boolean> {
     const registeredStatus = await this.getRegistrationStatus(sender);
     if (!registeredStatus) {
       throw Error('Account mentioned is not registered with us');
     }
+
     const tx = await this.nftContract.mint(sender, ipfsCid);
-    return tx.hash;
+    const txReceipt = await tx.wait(1);
+    if (txReceipt.status) {
+      return !!txReceipt.status;
+    } else {
+      return !!txReceipt.status;
+    }
   }
 
   async getNFTFromIPFSCID(cid: string): Promise<string> {
