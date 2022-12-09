@@ -26,7 +26,9 @@ interface DappState {
   nftTokenBalance: number;
   file: undefined | File;
   image: string;
+  imageURL: string;
   ipfsCid: string;
+  nftTransfer: string;
 }
 
 export class Dapp extends React.Component<{}, DappState> {
@@ -35,10 +37,12 @@ export class Dapp extends React.Component<{}, DappState> {
   _token: any;
   _pollOneSecInterval: any;
   _poll10SecInterval: any;
+  myRef: any;
 
   constructor(props: any) {
     super(props);
 
+    this.myRef = React.createRef();
     this.initialState = {
       selectedAddress: undefined,
       networkError: undefined,
@@ -55,9 +59,11 @@ export class Dapp extends React.Component<{}, DappState> {
       starPosition: '',
       file: undefined,
       image: '',
+      imageURL: '',
       ipfsCid: '',
       faucetTransactionHash: '',
       nftMintingHash: '',
+      nftTransfer: 'true',
     };
     this.state = this.initialState;
 
@@ -65,6 +71,7 @@ export class Dapp extends React.Component<{}, DappState> {
     this.burnToken = this.burnToken.bind(this);
     this.setImage = this.setImage.bind(this);
     this.uploadImage = this.uploadImage.bind(this);
+    this.sendNFT = this.sendNFT.bind(this);
   }
 
   render() {
@@ -180,11 +187,11 @@ export class Dapp extends React.Component<{}, DappState> {
           <></>
         )}
 
-        {this.state.image && (
+        {/* {this.state.image && (
           <img
             src={`data:image/jpeg;charset=utf-8;base64,${this.state.image}`}
           />
-        )}
+        )} */}
 
         {/* <div>
           <form onSubmit={this.uploadImage}>
@@ -218,7 +225,7 @@ export class Dapp extends React.Component<{}, DappState> {
           <></>
         )}
 
-        {this.state.ipfsCid && (
+        {this.state.nftTokenBalance && (
           <div className="col-12">
             <p>
               {' '}
@@ -235,6 +242,21 @@ export class Dapp extends React.Component<{}, DappState> {
               Successfully mint the image in transaction{' '}
               {this.state.nftMintingHash},{' '}
             </p>
+          </div>
+        )}
+
+        {this.state.nftTransfer && (
+          <div className="row mt-5">
+            <div className="col-12">
+              <input type="text" placeholder="address" ref={this.myRef} />
+              <button
+                type="submit"
+                className="btn btn-primary"
+                onClick={this.sendNFT}
+              >
+                Transfer
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -349,7 +371,7 @@ export class Dapp extends React.Component<{}, DappState> {
 
   async polling10SecCalls() {
     await this.getRegisteredState();
-    await this.retrieveStarPosition();
+    // await this.retrieveStarPosition();
     await this.retrieveMintedNFT();
   }
 
@@ -362,7 +384,10 @@ export class Dapp extends React.Component<{}, DappState> {
     // balance of the access token
     const res = BigNumber.from(
       await accessToken.balanceOf(this.state.selectedAddress),
-    ).toString();
+    )
+      .mul(BigNumber.from(10).pow(18))
+      .toString();
+
     this.setState({ balanceAccessToken: res });
 
     // balance of UZHETH
@@ -545,6 +570,8 @@ export class Dapp extends React.Component<{}, DappState> {
 
     this.setState({ nftTokenBalance });
 
+    console.log(`NFT Token Balance: ${nftTokenBalance}`);
+
     if (BigNumber.from(this.state.nftTokenBalance).gt(0)) {
       console.log(`nft token balance is high`, this.state.nftTokenBalance);
       const nftTokenInterface = new ethers.utils.Interface(
@@ -574,8 +601,42 @@ export class Dapp extends React.Component<{}, DappState> {
         process.env.REACT_APP_BACKEND_API_URL +
           `/web3/ipfs/${this.state.ipfsCid}`,
       );
-
+      console.log(response.data);
       this.setState({ image: response.data });
     }
+
+    if (this.state.nftTokenBalance) {
+      const response = await axios.get(
+        process.env.REACT_APP_BACKEND_API_URL +
+          `nfts/${this.state.selectedAddress}`,
+      );
+
+      this.setState({
+        ipfsCid: response.data[0].ipfsURL.match(
+          /https?:\/\/((.+?))?\.ipfs\.dweb\.link(\/[A-Za-z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;\=]*)?/,
+        )[1],
+      });
+
+      console.log(this.state.ipfsCid);
+    }
+  }
+
+  async sendNFT(): Promise<boolean> {
+    const nftToken = new ethers.Contract(
+      process.env.REACT_APP_NFT_TOKEN_ADDRESS as string, // This is the NFT contract address given already
+      ERC721Abi,
+      this._provider.getSigner(),
+    );
+
+    const tx = await nftToken.transferFrom(
+      this.state.selectedAddress, // this should be sending address, fetched from the wallet connected
+      this.myRef.current.value, // this should be receiving address, retreived from the user input
+      1, //this should be the NFTID here I hardcoded
+    );
+    console.log(`transaction object: ${tx}`);
+
+    const txReceipt = await tx.wait(3);
+    console.log(`transaction receipt: ${txReceipt}`);
+    return !!txReceipt.status;
   }
 }
