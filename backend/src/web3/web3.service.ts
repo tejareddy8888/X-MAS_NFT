@@ -125,14 +125,28 @@ export class Web3Service {
   }
 
   async getNftIdsOwnedByUser(user: string): Promise<string[]> {
-    const response = await this.nftContract.queryFilter(
+    const mintedNfts = await this.nftContract.queryFilter(
       this.nftContract.filters.Transfer(null, user),
     );
 
-    if (!response.length) {
+    if (!mintedNfts.length) {
       return [];
     }
-    return response.map((e) => BigNumber.from(e.args.tokenId).toString());
+
+    const transferOutNfts = await this.nftContract.queryFilter(
+      this.nftContract.filters.Transfer(user),
+    );
+
+    if (!transferOutNfts.length) {
+      return mintedNfts.map((e) => BigNumber.from(e.args.tokenId).toString());
+    }
+    const transferOutNftIds = transferOutNfts.map((e) =>
+      BigNumber.from(e.args.tokenId).toString(),
+    );
+
+    return mintedNfts
+      .map((e) => BigNumber.from(e.args.tokenId).toString())
+      .filter((e) => !transferOutNftIds.includes(e));
   }
 
   async getTokenUriFromNFTId(tokenId: string): Promise<string> {
