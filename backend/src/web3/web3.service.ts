@@ -125,28 +125,44 @@ export class Web3Service {
   }
 
   async getNftIdsOwnedByUser(user: string): Promise<string[]> {
-    const mintedNfts = await this.nftContract.queryFilter(
+    const ownedNftIds = [];
+    const mintedAndTransferInNfts = await this.nftContract.queryFilter(
       this.nftContract.filters.Transfer(null, user),
     );
 
-    if (!mintedNfts.length) {
-      return [];
+    if (!mintedAndTransferInNfts.length) {
+      return ownedNftIds;
+    }
+    const tokenIds = [
+      ...new Set(
+        mintedAndTransferInNfts.map((e) =>
+          BigNumber.from(e.args.tokenId).toString(),
+        ),
+      ),
+    ];
+    const tokenCount = tokenIds.length;
+
+    for (let i = 0; i < tokenCount; i++) {
+      // First, find the all transfers of the token
+      // from null` to `null` so we get all the transfers of `tokenId`
+      const transferFilter = this.nftContract.filters.Transfer(
+        null,
+        null,
+        parseInt(tokenIds[i]),
+      );
+      const tokenTransfers = await this.nftContract.queryFilter(transferFilter);
+
+      // `args.to` of the last element gives the current owner of issued token
+      const lastTransfer = tokenTransfers[tokenTransfers.length - 1];
+      const currentOwner = lastTransfer.args.to;
+
+      // If the address has already found before, don't add it...
+      if (user.toLowerCase() == currentOwner.toLowerCase()) {
+        ownedNftIds.push(tokenIds[i]);
+      }
     }
 
-    const transferOutNfts = await this.nftContract.queryFilter(
-      this.nftContract.filters.Transfer(user),
-    );
-
-    if (!transferOutNfts.length) {
-      return mintedNfts.map((e) => BigNumber.from(e.args.tokenId).toString());
-    }
-    const transferOutNftIds = transferOutNfts.map((e) =>
-      BigNumber.from(e.args.tokenId).toString(),
-    );
-
-    return mintedNfts
-      .map((e) => BigNumber.from(e.args.tokenId).toString())
-      .filter((e) => !transferOutNftIds.includes(e));
+    return ownedNftIds;
   }
 
   async getTokenUriFromNFTId(tokenId: string): Promise<string> {
